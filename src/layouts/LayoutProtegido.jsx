@@ -42,8 +42,19 @@ const LayoutProtegido = () => {
           >
             {/* Logo */}
             {expandido && (
-              <div className="flex items-center justify-center h-24 border-b border-white/20">
-                <img src="/img/logo_real.png" alt="logo" className="w-46 h-20" />
+              <div className="flex flex-col items-center justify-center py-3 border-b border-white/20">
+                <div className="">
+                  <img
+                    src="/img/logo_real.png"
+                    alt="Logo del sistema"
+                    className="w-44 h-18 object-contain drop-shadow-sm"
+                  />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-light text-white/90 leading-tight">
+                    Sistema de Gestión de Requisiciones
+                  </p>
+                </div>
               </div>
             )}
             {/* Navegación */}

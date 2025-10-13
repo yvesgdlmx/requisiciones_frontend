@@ -58,7 +58,7 @@ const Login = () => {
                   Laboratorio Otpimex
                 </h3>
                 <p className="text-sm text-gray-200/90">
-                  Gestión inteligente de requisiciones
+                  Sistema de gestión de requisiciones
                 </p>
               </div>
             </div>
