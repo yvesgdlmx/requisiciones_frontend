@@ -309,15 +309,24 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                   >
                     Unidad de Medida
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id={`unidadMedida-${index}`}
                     name="unidadMedida"
                     value={articulo.unidadMedida}
                     onChange={(e) => handleChangeArticulo(index, e)}
                     className="mt-1 block w-full p-3 border border-gray-300 rounded-md"
                     required
-                  />
+                  >
+                    <option value="">Seleccione una opción</option>
+                    <option value="Pieza">Pieza</option>
+                    <option value="Galon">Galon</option>
+                    <option value="Cubeta">Cubeta</option>
+                    <option value="Metros">Metros</option>
+                    <option value="Caja">Caja</option>
+                    <option value="Paquete">Paquete</option>
+                    <option value="Frasco">Frasco</option>
+                    <option value="KG">KG</option>
+                  </select>
                 </div>
                 <div>
                   <label

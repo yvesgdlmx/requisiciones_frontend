@@ -22,7 +22,7 @@ const ModalAdminDetalleRequisicion = ({
   const [comentario, setComentario] = useState("");
   const [numeroOrdenCompra, setNumeroOrdenCompra] = useState("");
   const [proveedor, setProveedor] = useState("");
-  const [tipoCompra, setTipoCompra] = useState("nacional");
+  const [tipoCompra, setTipoCompra] = useState("");
   // Recuperar el rol del usuario (se asume que se guarda en localStorage)
   const userRole = localStorage.getItem("rol"); // "admin" o "superadmin"
   // Opciones para el select de status
@@ -45,7 +45,7 @@ const ModalAdminDetalleRequisicion = ({
       setComentario("");
       setNumeroOrdenCompra("");
       setProveedor("");
-      setTipoCompra("nacional");
+      setTipoCompra("");
     }
   }, [isOpen]);
   useEffect(() => {
@@ -54,7 +54,7 @@ const ModalAdminDetalleRequisicion = ({
       setComentario(requisicion.comentario || "");
       setNumeroOrdenCompra(requisicion.numeroOrdenCompra || "");
       setProveedor(requisicion.proveedor || "");
-      setTipoCompra(requisicion.tipoCompra || "nacional");
+      setTipoCompra(requisicion.tipoCompra || "");
     }
   }, [requisicion]);
   const normalizePath = (filePath) => filePath.replace(/\\/g, "/");
@@ -164,7 +164,10 @@ const ModalAdminDetalleRequisicion = ({
       data.append("comentario", comentario);
       data.append("numeroOrdenCompra", numeroOrdenCompra);
       data.append("proveedor", proveedor);
-      data.append("tipoCompra", tipoCompra);
+      data.append("tipoCompra", tipoCompra === "" ? null : tipoCompra);
+      nuevosDocumentos.forEach((file) => {
+        data.append("archivo", file);
+      });
       nuevosDocumentos.forEach((file) => {
         data.append("archivo", file);
       });
@@ -377,7 +380,7 @@ const ModalAdminDetalleRequisicion = ({
               <input
                 type="text"
                 value={numeroOrdenCompra}
-                onChange={e => setNumeroOrdenCompra(e.target.value)}
+                onChange={(e) => setNumeroOrdenCompra(e.target.value)}
                 className="w-full border border-gray-300 rounded px-2 py-1"
                 placeholder="No asignado"
               />
@@ -389,7 +392,7 @@ const ModalAdminDetalleRequisicion = ({
               <input
                 type="text"
                 value={proveedor}
-                onChange={e => setProveedor(e.target.value)}
+                onChange={(e) => setProveedor(e.target.value)}
                 className="w-full border border-gray-300 rounded px-2 py-1"
                 placeholder="No asignado"
               />
@@ -400,9 +403,10 @@ const ModalAdminDetalleRequisicion = ({
               </label>
               <select
                 value={tipoCompra}
-                onChange={e => setTipoCompra(e.target.value)}
+                onChange={(e) => setTipoCompra(e.target.value)}
                 className="w-full border border-gray-300 rounded px-2 py-1"
               >
+                <option value="">Seleccione una opción</option>
                 <option value="nacional">Nacional</option>
                 <option value="internacional">Internacional</option>
               </select>
