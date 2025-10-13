@@ -55,7 +55,7 @@ const Login = () => {
               </div>
               <div>
                 <h3 className="text-xl font-bold leading-tight">
-                  Laboratorio Otpimex
+                  Laboratorio Optimex
                 </h3>
                 <p className="text-sm text-gray-200/90">
                   Sistema de gestión de requisiciones
