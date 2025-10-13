@@ -9,8 +9,15 @@ import CardInfoRequisicion from "../cards/CardInfoRequisicion";
 import CardArticulo from "../cards/CardArticulo";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import RequisicionPDF from "../herramientasPDF/RequisicionPDF";
+
 const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
 Modal.setAppElement("#root");
+
+// Componente Spinner personalizado
+const LoadingSpinner = () => (
+  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+);
+
 const ModalAdminDetalleRequisicion = ({
   isOpen,
   requisicion,
@@ -23,8 +30,11 @@ const ModalAdminDetalleRequisicion = ({
   const [numeroOrdenCompra, setNumeroOrdenCompra] = useState("");
   const [proveedor, setProveedor] = useState("");
   const [tipoCompra, setTipoCompra] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // ESTADO DE LOADING
+  
   // Recuperar el rol del usuario (se asume que se guarda en localStorage)
   const userRole = localStorage.getItem("rol"); // "admin" o "superadmin"
+  
   // Opciones para el select de status
   const statusOptions = [
     "creada",
@@ -39,6 +49,7 @@ const ModalAdminDetalleRequisicion = ({
     "concluida",
     "cancelada",
   ];
+
   useEffect(() => {
     if (!isOpen) {
       setNuevosDocumentos([]);
@@ -48,6 +59,7 @@ const ModalAdminDetalleRequisicion = ({
       setTipoCompra("");
     }
   }, [isOpen]);
+
   useEffect(() => {
     if (requisicion) {
       setUpdatedStatus(requisicion.status);
@@ -57,9 +69,11 @@ const ModalAdminDetalleRequisicion = ({
       setTipoCompra(requisicion.tipoCompra || "");
     }
   }, [requisicion]);
+
   const normalizePath = (filePath) => filePath.replace(/\\/g, "/");
   const isImage = (filePath) => /\.(jpg|jpeg|png)$/i.test(filePath);
   const isPDF = (filePath) => /\.pdf$/i.test(filePath);
+
   const handleStatusChange = (e) => {
     if (userRole === "superadmin") {
       Swal.fire({
@@ -76,6 +90,7 @@ const ModalAdminDetalleRequisicion = ({
     }
     setUpdatedStatus(e.target.value);
   };
+
   const handleAgregarDocumento = (e) => {
     const files = Array.from(e.target.files);
     const total = nuevosDocumentos.length + files.length;
@@ -86,9 +101,11 @@ const ModalAdminDetalleRequisicion = ({
     setNuevosDocumentos((prev) => [...prev, ...files]);
     e.target.value = "";
   };
+
   const handleQuitarDocumento = (index) => {
     setNuevosDocumentos((prev) => prev.filter((_, i) => i !== index));
   };
+
   const renderPreviewNuevosDocumentos = () => (
     <div className="flex flex-wrap gap-2">
       {nuevosDocumentos.map((file, index) => {
@@ -140,10 +157,14 @@ const ModalAdminDetalleRequisicion = ({
       })}
     </div>
   );
+
   const handleClearComment = () => {
     setComentario("");
   };
+
   const handleSaveChanges = async () => {
+    setIsLoading(true); // ACTIVAR SPINNER
+    
     try {
       if (userRole === "superadmin" && updatedStatus !== requisicion.status) {
         Swal.fire({
@@ -165,9 +186,6 @@ const ModalAdminDetalleRequisicion = ({
       data.append("numeroOrdenCompra", numeroOrdenCompra);
       data.append("proveedor", proveedor);
       data.append("tipoCompra", tipoCompra === "" ? null : tipoCompra);
-      nuevosDocumentos.forEach((file) => {
-        data.append("archivo", file);
-      });
       nuevosDocumentos.forEach((file) => {
         data.append("archivo", file);
       });
@@ -206,8 +224,11 @@ const ModalAdminDetalleRequisicion = ({
         timer: 3000,
         timerProgressBar: true,
       });
+    } finally {
+      setIsLoading(false); // DESACTIVAR SPINNER
     }
   };
+
   const handleClose = () => {
     setNuevosDocumentos([]);
     setComentario("");
@@ -216,6 +237,7 @@ const ModalAdminDetalleRequisicion = ({
     setTipoCompra("nacional");
     onClose();
   };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -223,8 +245,18 @@ const ModalAdminDetalleRequisicion = ({
       contentLabel="Detalle de la Requisición"
       overlayClassName="fixed inset-0 flex justify-center items-center z-50 p-4"
       style={{ overlay: { backgroundColor: "rgba(0, 0, 0, 0.5)" } }}
-      className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl outline-none overflow-hidden flex flex-col max-h-full mx-4"
+      className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl outline-none overflow-hidden flex flex-col max-h-full mx-4 relative"
     >
+      {/* OVERLAY DEL SPINNER */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-2xl">
+          <div className="text-center">
+            <LoadingSpinner />
+            <p className="text-gray-600 font-medium mt-4">Actualizando requisición...</p>
+          </div>
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="bg-gradient-to-r from-teal-500 to-emerald-600 p-4 sm:p-6 flex justify-between items-center text-white">
         <div>
@@ -579,10 +611,11 @@ const ModalAdminDetalleRequisicion = ({
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 sm:px-5 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm"
         >
           <FaSave />
-          Guardar cambios
+          {isLoading ? "Guardando cambios..." : "Guardar cambios"}
         </button>
       </div>
     </Modal>
   );
 };
+
 export default ModalAdminDetalleRequisicion;

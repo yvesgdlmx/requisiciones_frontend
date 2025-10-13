@@ -12,6 +12,7 @@ export const CrearRequisicionProvider = ({ children }) => {
     links: [],
   };
   const [formData, setFormData] = useState(initialFormState);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
   // Manejar cambios en los inputs de la cabecera.
   const handleChange = (e) => {
@@ -96,6 +97,8 @@ export const CrearRequisicionProvider = ({ children }) => {
       cancelButtonText: "Cancelar",
     });
     if (!confirmacion.isConfirmed) return;
+    setIsLoading(true); // Activar el spinner
+
     try {
       const token = localStorage.getItem("token");
       const data = new FormData();
@@ -150,6 +153,8 @@ export const CrearRequisicionProvider = ({ children }) => {
           toast.addEventListener("mouseleave", Swal.resumeTimer);
         },
       });
+    } finally {
+      setIsLoading(false); // Desactivar el spinner
     }
   };
   return (
@@ -159,6 +164,7 @@ export const CrearRequisicionProvider = ({ children }) => {
         setFormData,
         initialFormState,
         fileInputRef,
+        isLoading,
         handleChange,
         handleFileChange,
         removerArchivo,
