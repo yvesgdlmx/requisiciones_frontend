@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { FaTrash, FaPencilAlt } from "react-icons/fa";
+import { FaTrash, FaPencilAlt, FaExclamationTriangle } from "react-icons/fa";
 import Swal from "sweetalert2";
+import { esRequisicionInactiva } from "../../helpers/FuncionesHelpers";
+
 const TablaRequisicionesMobile = ({
   data,
   itemsPorPagina,
@@ -8,6 +10,7 @@ const TablaRequisicionesMobile = ({
   onRowClick,
   onEditarClick,
   onEliminarClick,
+  mostrarNotificacion = false,
 }) => {
   const [pagina, setPagina] = useState(1);
   const [openActionsIndex, setOpenActionsIndex] = useState(null);
@@ -111,9 +114,23 @@ const TablaRequisicionesMobile = ({
         >
           {/* Encabezado */}
           <div className="p-4 flex justify-between items-center border-b border-gray-200">
-            <span className="text-orange-700 font-normal text-md">
-              {item.folio}
-            </span>
+            <div className="flex items-center">
+              {mostrarNotificacion &&
+                esRequisicionInactiva(item.fechaCambioStatus, item.status) && (
+                  <FaExclamationTriangle
+                    className="text-yellow-500 text-lg"
+                    title="Más de 48 horas sin actividad"
+                  />
+                )}
+              {mostrarNotificacion && item.status === "creada" && (
+                <p className="bg-red-600 text-white px-[5.5px] py-[1.5px] text-xs rounded-full font-semibold mx-2">
+                  new
+                </p>
+              )}
+              <span className="text-orange-700 font-normal text-md">
+                {item.folio}
+              </span>
+            </div>
             {mostrarAcciones && (
               <div className="relative">
                 <div

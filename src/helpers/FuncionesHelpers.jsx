@@ -10,3 +10,15 @@ const capitalizeWords = (texto) => {
     .join(' ');
 };
 export { capitalizeWords }
+
+export const esRequisicionInactiva = (fechaCambioStatus, status) => {
+  const estadosFinales = ['concluida', 'cancelada', 'rechazada' ];
+  if(estadosFinales.includes(status)) return false;
+
+  const ahora = new Date();
+  const fechaCambio = new Date(fechaCambioStatus);
+  const diferencia = ahora - fechaCambio;
+  const horas48 = 48 * 60 * 60 * 1000;
+
+  return diferencia > horas48
+};

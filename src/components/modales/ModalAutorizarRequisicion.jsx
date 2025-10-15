@@ -298,7 +298,7 @@ const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) =
         </div>
 
         {/* Sección de Links relacionados */}
-        {requisicion?.links && requisicion.links.length > 0 && (
+         {requisicion?.links && requisicion.links.length > 0 && (
           <div>
             <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
               🔗 Links relacionados
@@ -310,10 +310,10 @@ const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) =
                   href={link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 border border-blue-400 rounded-md text-gray-500 hover:bg-blue-50 transition-colors duration-200 w-fit"
+                  className="inline-flex items-start px-3 sm:px-4 py-2 border border-blue-400 rounded-md text-gray-500 hover:bg-blue-50 transition-colors duration-200 w-full break-all text-xs sm:text-sm leading-tight"
                 >
                   <svg
-                    className="w-5 h-5 mr-2"
+                    className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
@@ -411,7 +411,7 @@ const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) =
           ✓ Autorizar
         </button>
         <button
-          onClick={() => handleUpdateStatus("rechazada")}
+          onClick={() => handleUpdateStatus("esperando autorizacion")}
           className="bg-red-500 hover:bg-red-600 text-white px-4 sm:px-5 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm"
         >
           ✗ Rechazar

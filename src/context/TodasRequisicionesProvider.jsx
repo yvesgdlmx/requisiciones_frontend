@@ -21,6 +21,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
   // Función para transformar la requisición y generar campos derivados
   const transformarRequisicion = (item) => {
     const fechaObj = new Date(item.fechaHora);
+    const fechaCambioStatusObj = item.fechaCambioStatus ? new Date(item.fechaCambioStatus) : fechaObj;
     let solicitante = "";
     if (item.usuario) {
       const primerNombre = item.usuario.nombre ? item.usuario.nombre.split(" ")[0] : "";
@@ -36,6 +37,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
         second: "2-digit",
       }),
       fechaOriginal: fechaObj,
+      fechaCambioStatus: fechaCambioStatusObj,
       solicitante,
       archivos: Array.isArray(item.archivos) ? item.archivos : [],
       articulos: Array.isArray(item.articulos) ? item.articulos : []

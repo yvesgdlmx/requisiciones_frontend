@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { FaTrash, FaPencilAlt, FaRegBell } from "react-icons/fa"; // Ícono para "nueva"
+import { FaTrash, FaPencilAlt, FaExclamationTriangle } from "react-icons/fa"; // Ícono para "nueva"
 import Swal from "sweetalert2";
-import { capitalizeWords } from "../../helpers/FuncionesHelpers";
+import { capitalizeWords, esRequisicionInactiva } from "../../helpers/FuncionesHelpers";
 
 // Funciones helper para formatear fecha y hora
 const formatDate = (fechaOriginal) => {
@@ -180,6 +180,12 @@ const TablaRequisiciones = ({
               >
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-2">
+                    {mostrarNotificacion && esRequisicionInactiva(item.fechaCambioStatus, item.status) && (
+                      <FaExclamationTriangle
+                        className="text-yellow-500 text-lg"
+                        title="Más de 48 horas sin actividad"
+                      />
+                    )}
                     {/* Se muestra el ícono "nuevo" solo si mostrarNotificacion es true */}
                     {mostrarNotificacion && item.status === "creada" && (
                       <p className="bg-red-600 text-white px-[5.5px] py-[1.5px] text-xs rounded-full font-semibold">
