@@ -88,6 +88,7 @@ const TodasRequisiciones = () => {
           mostrarAcciones={false}
           onRowClick={handleRowClick}
           mostrarNotificacion={true}
+          mostrarColumnasAdmin={true}
         />
       </div>
 

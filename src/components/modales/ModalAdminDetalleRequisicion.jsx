@@ -30,7 +30,11 @@ const ModalAdminDetalleRequisicion = ({
   const [numeroOrdenCompra, setNumeroOrdenCompra] = useState("");
   const [proveedor, setProveedor] = useState("");
   const [tipoCompra, setTipoCompra] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // ESTADO DE LOADING
+  // NUEVOS ESTADOS: solo monto y ETA
+  const [moneda, setMoneda] = useState("pesos");
+  const [cantidad, setCantidad] = useState("");
+  const [eta, setEta] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   
   // Recuperar el rol del usuario (se asume que se guarda en localStorage)
   const userRole = localStorage.getItem("rol"); // "admin" o "superadmin"
@@ -57,6 +61,9 @@ const ModalAdminDetalleRequisicion = ({
       setNumeroOrdenCompra("");
       setProveedor("");
       setTipoCompra("");
+      setMoneda("pesos");
+      setCantidad("");
+      setEta("");
     }
   }, [isOpen]);
 
@@ -67,6 +74,27 @@ const ModalAdminDetalleRequisicion = ({
       setNumeroOrdenCompra(requisicion.numeroOrdenCompra || "");
       setProveedor(requisicion.proveedor || "");
       setTipoCompra(requisicion.tipoCompra || "");
+      
+      // Parsear el monto existente si existe
+      if (requisicion.monto) {
+        const montoPartes = requisicion.monto.split(" ");
+        if (montoPartes.length === 2) {
+          setCantidad(montoPartes[0]);
+          setMoneda(montoPartes[1]);
+        }
+      } else {
+        setCantidad("");
+        setMoneda("pesos");
+      }
+      
+      // Formatear la fecha ETA para el input date
+      if (requisicion.eta) {
+        const fecha = new Date(requisicion.eta);
+        const fechaFormateada = fecha.toISOString().split('T')[0];
+        setEta(fechaFormateada);
+      } else {
+        setEta("");
+      }
     }
   }, [requisicion]);
 
@@ -163,7 +191,7 @@ const ModalAdminDetalleRequisicion = ({
   };
 
   const handleSaveChanges = async () => {
-    setIsLoading(true); // ACTIVAR SPINNER
+    setIsLoading(true);
     
     try {
       if (userRole === "superadmin" && updatedStatus !== requisicion.status) {
@@ -186,6 +214,12 @@ const ModalAdminDetalleRequisicion = ({
       data.append("numeroOrdenCompra", numeroOrdenCompra);
       data.append("proveedor", proveedor);
       data.append("tipoCompra", tipoCompra === "" ? null : tipoCompra);
+      
+      // NUEVOS CAMPOS: solo monto y ETA
+      const montoCompleto = cantidad && moneda ? `${cantidad} ${moneda}` : "";
+      data.append("monto", montoCompleto);
+      data.append("eta", eta);
+      
       nuevosDocumentos.forEach((file) => {
         data.append("archivo", file);
       });
@@ -225,7 +259,7 @@ const ModalAdminDetalleRequisicion = ({
         timerProgressBar: true,
       });
     } finally {
-      setIsLoading(false); // DESACTIVAR SPINNER
+      setIsLoading(false);
     }
   };
 
@@ -234,7 +268,10 @@ const ModalAdminDetalleRequisicion = ({
     setComentario("");
     setNumeroOrdenCompra("");
     setProveedor("");
-    setTipoCompra("nacional");
+    setTipoCompra("");
+    setMoneda("pesos");
+    setCantidad("");
+    setEta("");
     onClose();
   };
 
@@ -275,6 +312,7 @@ const ModalAdminDetalleRequisicion = ({
           ✕
         </button>
       </div>
+
       {/* BODY */}
       <div className="p-4 sm:p-6 space-y-6 overflow-y-auto">
         {/* Información Principal para pantallas pequeñas */}
@@ -286,6 +324,7 @@ const ModalAdminDetalleRequisicion = ({
             handleStatusChange={handleStatusChange}
           />
         </div>
+
         {/* Tabla de Información Principal para pantallas grandes */}
         <div className="hidden sm:block overflow-x-auto mb-6">
           <table className="min-w-full divide-y divide-gray-200 shadow-sm">
@@ -341,6 +380,7 @@ const ModalAdminDetalleRequisicion = ({
             </tbody>
           </table>
         </div>
+
         {/* Artículos de la Requisición */}
         <div className="block sm:hidden">
           <h3 className="text-lg font-bold text-gray-500 mb-3 text-center">
@@ -354,6 +394,7 @@ const ModalAdminDetalleRequisicion = ({
             <p className="text-gray-500">No se han agregado artículos.</p>
           )}
         </div>
+
         <div className="hidden sm:block overflow-x-auto mb-6">
           <h3 className="text-lg font-bold text-gray-500 mb-3 text-center">
             Artículos de la Requisición
@@ -399,6 +440,7 @@ const ModalAdminDetalleRequisicion = ({
             <p className="text-gray-500">No se han agregado artículos.</p>
           )}
         </div>
+
         {/* Sección de Datos de Compra */}
         <div className="bg-gray-50 py-4 px-6 rounded-md border border-gray-100 mb-2">
           <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -444,11 +486,52 @@ const ModalAdminDetalleRequisicion = ({
               </select>
             </div>
           </div>
+          
+          {/* NUEVA SECCIÓN: Monto y ETA */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label className="block text-gray-500 text-sm mb-1">
+                Monto
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={cantidad}
+                  onChange={(e) => setCantidad(e.target.value)}
+                  className="flex-1 border border-gray-300 rounded px-2 py-1"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                />
+                <select
+                  value={moneda}
+                  onChange={(e) => setMoneda(e.target.value)}
+                  className="border border-gray-300 rounded px-2 py-1"
+                >
+                  <option value="MXN">MXN</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-gray-500 text-sm mb-1">
+                ETA (Fecha Estimada de Entrega)
+              </label>
+              <input
+                type="date"
+                value={eta}
+                onChange={(e) => setEta(e.target.value)}
+                className="w-full border border-gray-300 rounded px-2 py-1"
+              />
+            </div>
+          </div>
         </div>
+
         {/* Sección de Comentario */}
         <div className="space-y-2">
           <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-2">
-            Comentario
+            Comentario del comprador
           </h3>
           <textarea
             value={comentario}
@@ -468,6 +551,21 @@ const ModalAdminDetalleRequisicion = ({
             </button>
           </div>
         </div>
+
+         {/* NUEVA SECCIÓN: Comentario del Autorizador */}
+        <div className="bg-blue-50 py-4 px-6 rounded-md border border-gray-100 mb-2">
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">
+            Comentario del Autorizador
+          </h3>
+          {requisicion?.comentarioAutorizador ? (
+            <p className="text-md text-gray-700 max-w-2xl">
+              {requisicion.comentarioAutorizador}
+            </p>
+          ) : (
+            <p className="text-md text-gray-500 italic">No hay comentario del autorizador.</p>
+          )}
+        </div>
+
         {/* Sección de Links relacionados */}
         {requisicion?.links && requisicion.links.length > 0 && (
           <div>
@@ -502,6 +600,7 @@ const ModalAdminDetalleRequisicion = ({
             </div>
           </div>
         )}
+
         {/* Sección de Documentos */}
         <div>
           <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
@@ -594,6 +693,7 @@ const ModalAdminDetalleRequisicion = ({
           </div>
         </div>
       </div>
+
       {/* FOOTER */}
       <div className="px-4 sm:px-6 py-3 bg-gray-50 flex justify-end items-center gap-3">
         <PDFDownloadLink

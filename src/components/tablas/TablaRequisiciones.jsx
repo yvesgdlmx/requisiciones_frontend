@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FaTrash, FaPencilAlt, FaRegBell } from "react-icons/fa"; // Ícono para "nueva"
 import Swal from "sweetalert2";
 import { capitalizeWords } from "../../helpers/FuncionesHelpers";
+
 // Funciones helper para formatear fecha y hora
 const formatDate = (fechaOriginal) => {
   const dateTime =
@@ -11,6 +12,7 @@ const formatDate = (fechaOriginal) => {
   const year = dateTime.getFullYear();
   return `${day}/${month}/${year}`;
 };
+
 const formatTime = (fechaOriginal) => {
   const dateTime =
     fechaOriginal instanceof Date ? fechaOriginal : new Date(fechaOriginal);
@@ -21,6 +23,7 @@ const formatTime = (fechaOriginal) => {
   if (hours === 0) hours = 12;
   return `${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
 };
+
 const TablaRequisiciones = ({
   data,
   itemsPorPagina,
@@ -30,6 +33,8 @@ const TablaRequisiciones = ({
   onEliminarClick,
   // Prop opcional que activa el ícono de "nuevo"
   mostrarNotificacion = false,
+  // NUEVA PROP: para mostrar las columnas de ETA y Monto
+  mostrarColumnasAdmin = false,
 }) => {
   const [pagina, setPagina] = useState(1);
   const totalPaginas = Math.ceil(data.length / itemsPorPagina);
@@ -38,6 +43,7 @@ const TablaRequisiciones = ({
     indiceInicio,
     indiceInicio + itemsPorPagina
   );
+
   // Función para determinar si se permite la acción (menos de 1 hora de diferencia)
   const accionPermitida = (item) => {
     if (!item.fechaOriginal) return true;
@@ -45,6 +51,14 @@ const TablaRequisiciones = ({
     const diferencia = ahora - new Date(item.fechaOriginal);
     return diferencia <= 3600000; // 1 hora en milisegundos
   };
+
+  // Función para formatear ETA
+  const formatearETA = (eta) => {
+    if (!eta) return "No asignada";
+    const fecha = new Date(eta);
+    return fecha.toLocaleDateString("es-ES");
+  };
+
   const seleccionarPagina = (paginaDestino) => setPagina(paginaDestino);
   const handlePrevPage = () => {
     if (pagina > 1) setPagina((prev) => prev - 1);
@@ -52,6 +66,7 @@ const TablaRequisiciones = ({
   const handleNextPage = () => {
     if (pagina < totalPaginas) setPagina((prev) => prev + 1);
   };
+
   const colorStatus = (status) => {
     switch (status) {
       case "creada":
@@ -80,6 +95,7 @@ const TablaRequisiciones = ({
         return "bg-gray-200 text-gray-800";
     }
   };
+
   // Función para editar
   const handleEditar = (item, e) => {
     e.stopPropagation();
@@ -105,6 +121,7 @@ const TablaRequisiciones = ({
       onEditarClick(item, e);
     }
   };
+
   // Función para eliminar
   const handleEliminar = (item, e) => {
     e.stopPropagation();
@@ -130,6 +147,7 @@ const TablaRequisiciones = ({
       onEliminarClick(item);
     }
   };
+
   return (
     <div>
       <div className="overflow-x-auto shadow-md rounded-xl border border-gray-200">
@@ -142,6 +160,13 @@ const TablaRequisiciones = ({
               <th className="px-4 py-2 text-left">Área</th>
               <th className="px-4 py-2 text-left">Comprador</th>
               <th className="px-4 py-2 text-left">Prioridad</th>
+              {/* NUEVAS COLUMNAS: Solo si mostrarColumnasAdmin es true */}
+              {mostrarColumnasAdmin && (
+                <>
+                  <th className="px-4 py-2 text-left">Monto</th>
+                  <th className="px-4 py-2 text-left">ETA</th>
+                </>
+              )}
               <th className="px-4 py-2 text-left">Status</th>
               {mostrarAcciones && <th className="px-4 py-2"></th>}
             </tr>
@@ -185,6 +210,23 @@ const TablaRequisiciones = ({
                     : "Esperando Comprador"}
                 </td>
                 <td className="px-4 py-4">{capitalizeWords(item.prioridad)}</td>
+                 {/* NUEVAS COLUMNAS DE DATOS */}
+                {mostrarColumnasAdmin && (
+                  <>
+                    <td className="px-4 py-4">
+                      <span className="text-sm">
+                        {item.monto || (
+                          <span className="italic text-gray-400">No asignado</span>
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="text-sm">
+                        {formatearETA(item.eta)}
+                      </span>
+                    </td>
+                  </>
+                )}
                 <td className="px-4 py-4">
                   <span
                     className={`inline-block px-3 py-1 rounded-xl text-sm font-medium ${colorStatus(
@@ -212,7 +254,14 @@ const TablaRequisiciones = ({
             ))}
             {registrosActuales.length === 0 && (
               <tr>
-                <td className="px-4 py-4" colSpan={mostrarAcciones ? "8" : "7"}>
+                <td 
+                  className="px-4 py-4" 
+                  colSpan={
+                    mostrarAcciones 
+                      ? (mostrarColumnasAdmin ? "10" : "8") 
+                      : (mostrarColumnasAdmin ? "9" : "7")
+                  }
+                >
                   No se encontraron registros.
                 </td>
               </tr>
@@ -261,4 +310,5 @@ const TablaRequisiciones = ({
     </div>
   );
 };
+
 export default TablaRequisiciones;

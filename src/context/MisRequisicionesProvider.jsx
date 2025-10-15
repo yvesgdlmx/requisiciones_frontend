@@ -99,12 +99,14 @@ export const MisRequisicionesProvider = ({ children }) => {
           comprador: item.comprador,
           links: item.links,
           archivos: Array.isArray(item.archivos) ? item.archivos : [],
-          // Se agrega la propiedad "articulos" para incluir cada artículo asociado a la requisición
           articulos: Array.isArray(item.articulos) ? item.articulos : [],
           numeroOrdenCompra: item.numeroOrdenCompra,
           proveedor: item.proveedor,
           tipoCompra: item.tipoCompra,
-          comentario: item.comentario
+          comentario: item.comentario,
+          monto: item.monto,
+          comentarioAutorizador: item.comentarioAutorizador,
+          eta: item.eta
         };
       });
       setDatos(datosTransformados);

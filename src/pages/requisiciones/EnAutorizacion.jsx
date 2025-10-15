@@ -30,6 +30,7 @@ const EnAutorizacion = () => {
               itemsPorPagina={itemsPorPagina}
               mostrarAcciones={false}
               onRowClick={handleRowClick}
+              mostrarColumnasAdmin={true}
             />
           </div>
           {/* Vista en pantallas pequeñas: se muestra la versión en cards */}

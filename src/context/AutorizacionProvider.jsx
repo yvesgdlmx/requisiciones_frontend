@@ -31,6 +31,9 @@ export const AutorizacionProvider = ({ children }) => {
       solicitante: (primerNombre || primerApellido)
         ? `${primerNombre} ${primerApellido}`.trim()
         : "",
+      monto: item.monto,
+      comentarioAutorizador: item.comentarioAutorizador,
+      eta: item.eta
     };
   };
   // Función para obtener las requisiciones con status "esperando autorizacion"

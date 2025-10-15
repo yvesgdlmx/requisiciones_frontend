@@ -22,6 +22,13 @@ const ModalDetalleRequisicion = ({ isOpen, requisicion, onClose }) => {
     onClose();
   };
 
+  // Función para formatear la fecha ETA
+  const formatearETA = (eta) => {
+    if (!eta) return null;
+    const fecha = new Date(eta);
+    return fecha.toLocaleDateString("es-ES");
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -165,7 +172,7 @@ const ModalDetalleRequisicion = ({ isOpen, requisicion, onClose }) => {
           <h3 className="text-lg font-semibold text-gray-600 mb-2">
             Datos de la Orden de Compra
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <div>
               <span className="block text-gray-500 text-sm">N° Orden de Compra</span>
               <span className="text-gray-700 text-base font-medium">
@@ -185,20 +192,47 @@ const ModalDetalleRequisicion = ({ isOpen, requisicion, onClose }) => {
               </span>
             </div>
           </div>
+          
+          {/* NUEVA SECCIÓN: Monto y ETA */}
+          <div className="">
+            <div>
+              <span className="block text-gray-500 text-sm">ETA (Fecha Estimada de Entrega)</span>
+              <span className="text-gray-700 text-base font-medium">
+                {formatearETA(requisicion?.eta) || <span className="italic text-gray-400">No asignada</span>}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Sección de Comentario */}
-        <div className="bg-gray-50 py-4 px-6">
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
-            Comentario (comprador)
-          </h3>
-          {requisicion?.comentario ? (
-            <p className="text-md text-gray-700 max-w-2xl">
-              {requisicion.comentario}
-            </p>
-          ) : (
-            <p className="text-md text-gray-500 italic">No hay comentario.</p>
-          )}
+        {/* Sección de Comentarios */}
+        <div className="space-y-4">
+          {/* Comentario del Comprador */}
+          <div className="bg-gray-50 py-4 px-6 rounded-md">
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+              Comentario (Comprador)
+            </h3>
+            {requisicion?.comentario ? (
+              <p className="text-md text-gray-700 max-w-2xl">
+                {requisicion.comentario}
+              </p>
+            ) : (
+              <p className="text-md text-gray-500 italic">No hay comentario.</p>
+            )}
+          </div>
+
+          {/* NUEVO: Comentario del Autorizador */}
+          <div className="bg-blue-50 py-4 px-6 rounded-md">
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+              Comentario del Autorizador
+            </h3>
+            {requisicion?.comentarioAutorizador ? (
+              <p className="text-md text-gray-700 max-w-2xl">
+                {requisicion.comentarioAutorizador}
+              </p>
+            ) : (
+              <p className="text-md text-gray-500 italic">No hay comentario del autorizador.</p>
+            )}
+          </div>
         </div>
 
         {/* Sección de Links relacionados */}
