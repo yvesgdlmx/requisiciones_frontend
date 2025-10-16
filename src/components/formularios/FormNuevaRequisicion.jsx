@@ -1,12 +1,7 @@
 import React from "react";
 import useCrearRequisicion from "../../hooks/useCrearRequisicion";
 
-// Componente Spinner personalizado
-const LoadingSpinner = () => (
-  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-);
-
-const FormNuevaRequisicion = ({ onClose, resetModal }) => {
+const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
   const {
     formData,
     isLoading,
@@ -23,18 +18,15 @@ const FormNuevaRequisicion = ({ onClose, resetModal }) => {
     handleRemoveLink,
   } = useCrearRequisicion();
 
+  // Notificar al modal sobre el estado de loading
+  React.useEffect(() => {
+    if (setModalLoading) {
+      setModalLoading(isLoading);
+    }
+  }, [isLoading, setModalLoading]);
+
   return (
     <div className="relative">
-      {/* Overlay del spinner */}
-      {isLoading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50 rounded-2xl">
-          <div className="text-center">
-            <LoadingSpinner />
-            <p className="text-gray-600 font-medium mt-4">Creando requisición...</p>
-          </div>
-        </div>
-      )}
-
       <form
         onSubmit={(e) => handleSubmit(e, onClose, resetModal)}
         className="w-full"
