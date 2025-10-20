@@ -1,10 +1,13 @@
 import React, { createContext, useState, useEffect } from "react";
 import clienteAxios from "../config/clienteAxios";
+
 const TodasRequisicionesContext = createContext();
+
 export const TodasRequisicionesProvider = ({ children }) => {
   // Estados principales
   const [datos, setDatos] = useState([]);
   const [error, setError] = useState(null);
+  
   // Opciones para la búsqueda
   const opciones = [
     { value: "folio", label: "Folio" },
@@ -15,19 +18,26 @@ export const TodasRequisicionesProvider = ({ children }) => {
   const [opcionSeleccionada, setOpcionSeleccionada] = useState(opciones[0]);
   const [busqueda, setBusqueda] = useState("");
   const itemsPorPagina = 10;
+  
   // Estados para el modal de detalle
   const [modalDetalleActivo, setModalDetalleActivo] = useState(false);
   const [requisicionSeleccionada, setRequisicionSeleccionada] = useState(null);
+  
   // Función para transformar la requisición y generar campos derivados
-  const transformarRequisicion = (item) => {
+  const transformarRequisicion = (item, preservarSolicitante = false) => {
     const fechaObj = new Date(item.fechaHora);
     const fechaCambioStatusObj = item.fechaCambioStatus ? new Date(item.fechaCambioStatus) : fechaObj;
+    
     let solicitante = "";
     if (item.usuario) {
       const primerNombre = item.usuario.nombre ? item.usuario.nombre.split(" ")[0] : "";
       const primerApellido = item.usuario.apellido ? item.usuario.apellido.split(" ")[0] : "";
       solicitante = `${primerNombre} ${primerApellido}`.trim();
+    } else if (preservarSolicitante && item.solicitante) {
+      // Si no hay usuario pero queremos preservar el solicitante existente
+      solicitante = item.solicitante;
     }
+    
     return {
       ...item,
       fecha: fechaObj.toLocaleDateString("es-ES"),
@@ -43,48 +53,54 @@ export const TodasRequisicionesProvider = ({ children }) => {
       articulos: Array.isArray(item.articulos) ? item.articulos : []
     };
   };
+  
   // Función para obtener las requisiciones
   const obtenerRequisiciones = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await clienteAxios.get("/requisiciones", config);
-    const { requisiciones } = response.data;
+    try {
+      const token = localStorage.getItem("token");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await clienteAxios.get("/requisiciones", config);
+      const { requisiciones } = response.data;
 
-    // Marcar como abierto en frontend si el status ya no es "creada"
-    const requisicionesActualizadas = requisiciones.map((item) => {
-      if (item.status !== "creada" && !item.abierto) {
-        return { ...item, abierto: true };
-      }
-      return item;
-    });
+      // Marcar como abierto en frontend si el status ya no es "creada"
+      const requisicionesActualizadas = requisiciones.map((item) => {
+        if (item.status !== "creada" && !item.abierto) {
+          return { ...item, abierto: true };
+        }
+        return item;
+      });
 
-    const datosTransformados = requisicionesActualizadas.map((item) =>
-      transformarRequisicion(item)
-    );
-    setDatos(datosTransformados);
-  } catch (error) {
-    console.error("Error al obtener requisiciones:", error);
-    setError("Error al obtener requisiciones");
-  }
-};
+      const datosTransformados = requisicionesActualizadas.map((item) =>
+        transformarRequisicion(item)
+      );
+      setDatos(datosTransformados);
+    } catch (error) {
+      console.error("Error al obtener requisiciones:", error);
+      setError("Error al obtener requisiciones");
+    }
+  };
+  
   useEffect(() => {
     obtenerRequisiciones();
   }, []);
+  
   // Manejo de búsqueda y filtrado
   const handleSelectChange = (opcion) => setOpcionSeleccionada(opcion);
   const handleInputChange = (e) => setBusqueda(e.target.value);
+  
   const datosFiltrados = datos.filter((item) =>
     item[opcionSeleccionada.value]
       .toString()
       .toLowerCase()
       .includes(busqueda.toLowerCase())
   );
+  
   // Agrupar por status para el resumen
   const agrupacionStatus = datosFiltrados.reduce((acc, item) => {
     acc[item.status] = (acc[item.status] || 0) + 1;
     return acc;
   }, {});
+  
   // Detalles de status para mostrar en el resumen
   const detallesDeStatus = [
     { status: "creada", color: "bg-gray-200", textColor: "text-gray-800" },
@@ -99,42 +115,74 @@ export const TodasRequisicionesProvider = ({ children }) => {
     { status: "concluida", color: "bg-green-200", textColor: "text-green-800" },
     { status: "cancelada", color: "bg-red-200", textColor: "text-red-800" },
   ];
+  
   // Función para abrir el modal de detalle y actualizar el campo "abierto" si es necesario
- const handleRowClick = async (requisicion) => {
-  try {
-    const token = localStorage.getItem("token");
-    const config = { headers: { Authorization: `Bearer ${token}` } };
-    // 1. Obtener la requisición actualizada desde el backend
-    const response = await clienteAxios.get(`/requisiciones/${requisicion.id}`, config);
-    const requisicionActualizada = transformarRequisicion(response.data.requisicion);
+  const handleRowClick = async (requisicion) => {
+    try {
+      const token = localStorage.getItem("token");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      
+      // 1. Obtener la requisición actualizada desde el backend
+      const response = await clienteAxios.get(`/requisiciones/${requisicion.id}`, config);
+      const requisicionDelBackend = response.data.requisicion;
+      
+      // Combinar datos del backend con datos locales para preservar información
+      const requisicionCombinada = {
+        ...requisicionDelBackend,
+        // Preservar el solicitante original si el backend no lo incluye
+        solicitante: requisicionDelBackend.solicitante || requisicion.solicitante,
+        usuario: requisicionDelBackend.usuario || requisicion.usuario,
+      };
+      
+      const requisicionActualizada = transformarRequisicion(requisicionCombinada, true);
 
-    // 2. Si no está abierta, marcarla como vista
-    if (!requisicionActualizada.abierto) {
-      const putResponse = await clienteAxios.put(
-        `/requisiciones/${requisicion.id}/abrir`,
-        null,
-        config
-      );
-      requisicionActualizada.abierto = true;
-      actualizarRequisicion(putResponse.data.requisicion);
+      // 2. Si no está abierta, marcarla como vista
+      if (!requisicionActualizada.abierto) {
+        const putResponse = await clienteAxios.put(
+          `/requisiciones/${requisicion.id}/abrir`,
+          null,
+          config
+        );
+        requisicionActualizada.abierto = true;
+        
+        // Actualizar en el estado con los datos combinados
+        const requisicionParaActualizar = {
+          ...putResponse.data.requisicion,
+          solicitante: requisicionCombinada.solicitante,
+          usuario: requisicionCombinada.usuario,
+        };
+        actualizarRequisicion(requisicionParaActualizar);
+      }
+
+      setRequisicionSeleccionada(requisicionActualizada);
+      setModalDetalleActivo(true);
+    } catch (error) {
+      console.error("Error al obtener la requisición:", error);
+      setError("Error al obtener la requisición");
     }
-
-    setRequisicionSeleccionada(requisicionActualizada);
-    setModalDetalleActivo(true);
-  } catch (error) {
-    console.error("Error al obtener la requisición:", error);
-    setError("Error al obtener la requisición");
-  }
-};
+  };
+  
   // Función para actualizar una requisición en el estado (después de un PUT, por ejemplo)
   const actualizarRequisicion = (requisicionActualizada) => {
-    const requisicionFormateada = transformarRequisicion(requisicionActualizada);
     setDatos((prevDatos) =>
-      prevDatos.map((req) =>
-        req.id === requisicionFormateada.id ? requisicionFormateada : req
-      )
+      prevDatos.map((req) => {
+        if (req.id === requisicionActualizada.id) {
+          // Preservar datos importantes del estado anterior
+          const requisicionPrevia = req;
+          const requisicionMerged = {
+            ...requisicionActualizada,
+            // Preservar el solicitante si no viene en la actualización
+            solicitante: requisicionActualizada.solicitante || requisicionPrevia.solicitante,
+            // Preservar usuario si no viene en la actualización
+            usuario: requisicionActualizada.usuario || requisicionPrevia.usuario,
+          };
+          return transformarRequisicion(requisicionMerged, true);
+        }
+        return req;
+      })
     );
   };
+  
   return (
     <TodasRequisicionesContext.Provider
       value={{
@@ -165,4 +213,5 @@ export const TodasRequisicionesProvider = ({ children }) => {
     </TodasRequisicionesContext.Provider>
   );
 };
+
 export default TodasRequisicionesContext;

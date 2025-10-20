@@ -75,7 +75,7 @@ const Login = () => {
             </p>
           </div>
           <div className="text-sm text-gray-300/70 border-t border-white/10 pt-4">
-            © {new Date().getFullYear()} Laboratorio Otpimex · Todos los
+            © {new Date().getFullYear()} Laboratorio Optimex · Todos los
             derechos reservados
           </div>
         </aside>
