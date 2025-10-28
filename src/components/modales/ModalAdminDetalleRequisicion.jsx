@@ -25,6 +25,8 @@ const ModalAdminDetalleRequisicion = ({
   onUpdate,
 }) => {
   const [nuevosDocumentos, setNuevosDocumentos] = useState([]);
+  // NUEVO: Estado para manejar archivos existentes que se conservarán
+  const [archivosExistentes, setArchivosExistentes] = useState([]);
   const [updatedStatus, setUpdatedStatus] = useState("");
   const [comentario, setComentario] = useState("");
   const [numeroOrdenCompra, setNumeroOrdenCompra] = useState("");
@@ -57,6 +59,7 @@ const ModalAdminDetalleRequisicion = ({
   useEffect(() => {
     if (!isOpen) {
       setNuevosDocumentos([]);
+      setArchivosExistentes([]);
       setComentario("");
       setNumeroOrdenCompra("");
       setProveedor("");
@@ -74,6 +77,9 @@ const ModalAdminDetalleRequisicion = ({
       setNumeroOrdenCompra(requisicion.numeroOrdenCompra || "");
       setProveedor(requisicion.proveedor || "");
       setTipoCompra(requisicion.tipoCompra || "");
+      
+      // NUEVO: Inicializar archivos existentes
+      setArchivosExistentes(requisicion.archivos || []);
       
       // Parsear el monto existente si existe
       if (requisicion.monto) {
@@ -121,7 +127,7 @@ const ModalAdminDetalleRequisicion = ({
 
   const handleAgregarDocumento = (e) => {
     const files = Array.from(e.target.files);
-    const total = nuevosDocumentos.length + files.length;
+    const total = nuevosDocumentos.length + files.length + archivosExistentes.length;
     if (total > 5) {
       alert("Máximo 5 archivos permitidos.");
       return;
@@ -132,6 +138,33 @@ const ModalAdminDetalleRequisicion = ({
 
   const handleQuitarDocumento = (index) => {
     setNuevosDocumentos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // NUEVA FUNCIÓN: Eliminar archivo existente
+  const handleEliminarArchivoExistente = (index) => {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "Este archivo se eliminará permanentemente cuando guardes los cambios.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setArchivosExistentes((prev) => prev.filter((_, i) => i !== index));
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Archivo marcado para eliminación",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+      }
+    });
   };
 
   const renderPreviewNuevosDocumentos = () => (
@@ -220,6 +253,9 @@ const ModalAdminDetalleRequisicion = ({
       data.append("monto", montoCompleto);
       data.append("eta", eta);
       
+      // NUEVO: Enviar archivos existentes que se conservarán
+      data.append("archivosExistentes", JSON.stringify(archivosExistentes));
+      
       nuevosDocumentos.forEach((file) => {
         data.append("archivo", file);
       });
@@ -265,6 +301,7 @@ const ModalAdminDetalleRequisicion = ({
 
   const handleClose = () => {
     setNuevosDocumentos([]);
+    setArchivosExistentes([]);
     setComentario("");
     setNumeroOrdenCompra("");
     setProveedor("");
@@ -603,14 +640,14 @@ const ModalAdminDetalleRequisicion = ({
               </div>
             )}
 
-            {/* Sección de Documentos */}
+            {/* Sección de Documentos - MODIFICADA */}
             <div>
               <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
                 📂 Documentos
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {requisicion?.archivos && requisicion.archivos.length > 0 ? (
-                  requisicion.archivos.map((archivo, index) => {
+                {archivosExistentes && archivosExistentes.length > 0 ? (
+                  archivosExistentes.map((archivo, index) => {
                     // Soporta ambos formatos: objeto (nuevo) o string (antiguo)
                     const fileUrl =
                       typeof archivo === "string" ? archivo : archivo.url;
@@ -626,10 +663,22 @@ const ModalAdminDetalleRequisicion = ({
                     return (
                       <div
                         key={index}
-                        onClick={() => window.open(urlCompleta, "_blank")}
-                        className="border border-gray-200 rounded-lg shadow-sm overflow-hidden cursor-pointer transform hover:scale-105 transition flex flex-col"
+                        className="relative border border-gray-200 rounded-lg shadow-sm overflow-hidden cursor-pointer transform hover:scale-105 transition flex flex-col"
                       >
-                        <div className="flex-1">
+                        {/* NUEVO: Botón de eliminar */}
+                        <button
+                          type="button"
+                          onClick={() => handleEliminarArchivoExistente(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600 z-10"
+                          title="Eliminar archivo"
+                        >
+                          <FaTimes className="text-xs" />
+                        </button>
+                        
+                        <div 
+                          className="flex-1"
+                          onClick={() => window.open(urlCompleta, "_blank")}
+                        >
                           {isImage(urlCompleta) ? (
                             <img
                               src={urlCompleta}
@@ -680,7 +729,7 @@ const ModalAdminDetalleRequisicion = ({
               </div>
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Agregar documento(s) (imagen o PDF, máximo 5)
+                  Agregar documento(s) (imagen o PDF, máximo 5 total)
                 </label>
                 <input
                   type="file"
