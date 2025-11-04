@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
 import { FiSearch } from 'react-icons/fi';
 import TablaRequisiciones from '../../components/tablas/TablaRequisiciones';
@@ -8,7 +9,12 @@ import ResumenRequisiciones from '../../components/ResumenRequisiciones';
 import useTodasRequisiciones from '../../hooks/useTodasRequisiciones';
 
 const TodasRequisiciones = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [yaProcesoNotificacion, setYaProcesoNotificacion] = useState(false); // Nuevo estado
+  
   const {
+    datos,
     error,
     opciones,
     opcionSeleccionada,
@@ -28,13 +34,46 @@ const TodasRequisiciones = () => {
   } = useTodasRequisiciones();
 
   const [filtroStatus, setFiltroStatus] = useState(null);
+
   const handleStatusClick = (status) => {
-  if (status === 'Total General') {
-    setFiltroStatus(null); // Resetea el filtro
-  } else {
-    setFiltroStatus(status);
-  }
-};
+    if (status === 'Total General') {
+      setFiltroStatus(null);
+    } else {
+      setFiltroStatus(status);
+    }
+  };
+
+  // MODIFICADO: Efecto para abrir automáticamente una requisición específica
+  useEffect(() => {
+    const abrirRequisicionId = location.state?.abrirRequisicionId;
+    
+    if (abrirRequisicionId && datos.length > 0 && !yaProcesoNotificacion) {
+      // Buscar la requisición en los datos
+      const requisicionEncontrada = datos.find(req => req.id === abrirRequisicionId);
+      
+      if (requisicionEncontrada) {
+        // Marcar que ya procesamos esta notificación
+        setYaProcesoNotificacion(true);
+        // Abrir el modal con la requisición encontrada
+        handleRowClick(requisicionEncontrada);
+        // Limpiar el state inmediatamente después de procesar
+        navigate(location.pathname, { replace: true });
+      }
+    }
+  }, [datos, location.state, yaProcesoNotificacion, handleRowClick, navigate, location.pathname]);
+
+  // Resetear cuando no hay abrirRequisicionId (navegación normal)
+  useEffect(() => {
+    if (!location.state?.abrirRequisicionId) {
+      setYaProcesoNotificacion(false);
+    }
+  }, [location.state]);
+
+  // SIMPLIFICADO: Función para cerrar el modal
+  const handleCloseModal = () => {
+    setModalDetalleActivo(false);
+    setRequisicionSeleccionada(null);
+  };
 
   const datosFiltradosConStatus = filtroStatus
     ? datosFiltrados.filter((item) => item.status === filtroStatus)
@@ -105,10 +144,7 @@ const TodasRequisiciones = () => {
       <ModalAdminDetalleRequisicion
         isOpen={modalDetalleActivo}
         requisicion={requisicionSeleccionada || {}}
-        onClose={() => {
-          setModalDetalleActivo(false);
-          setRequisicionSeleccionada(null);
-        }}
+        onClose={handleCloseModal}
         onUpdate={actualizarRequisicion}
       />
     </div>

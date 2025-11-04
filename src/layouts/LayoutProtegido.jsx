@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, Navigate } from "react-router-dom";
-import { FiFileText, FiCheckCircle, FiList } from "react-icons/fi";
+import { FiFileText, FiCheckCircle, FiList, FiBell } from "react-icons/fi";
 import { RiMenuFoldLine, RiMenuUnfoldLine } from "react-icons/ri";
 import { FaUserCircle } from "react-icons/fa";
 import useAuth from "../hooks/useAuth";
 import ModalPerfil from "../components/modales/ModalPerfil";
+import clienteAxios from "../config/clienteAxios";
+import { useQuery } from "@tanstack/react-query";
 const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
 
 const LayoutProtegido = () => {
@@ -25,10 +27,25 @@ const LayoutProtegido = () => {
   const tieneRolSuperAdmin = auth.rol === "superadmin";
 
   const imagenSidebar = auth.imagenPerfil
-  ? (typeof auth.imagenPerfil === "string"
+    ? typeof auth.imagenPerfil === "string"
       ? `${baseUrl}/${auth.imagenPerfil.replace(/\\/g, "/")}`
-      : auth.imagenPerfil.url)
-  : null;
+      : auth.imagenPerfil.url
+    : null;
+
+  const { data: totalNoLeidas = 0 } = useQuery({
+    queryKey: ["notificaciones", auth?.id],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const { data } = await clienteAxios.get("/notificaciones", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return Number(data.totalNoLeidas) || 0;
+    },
+    enabled: !!auth?.id,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
+    retry: 1,
+  });
 
   return (
     <>
@@ -58,8 +75,31 @@ const LayoutProtegido = () => {
               </div>
             )}
             {/* Navegación */}
-            <nav className={expandido ? "flex-1 mt-8 px-3" : "flex-1 mt-8 px-5"}>
+            <nav
+              className={expandido ? "flex-1 mt-8 px-3" : "flex-1 mt-8 px-5"}
+            >
               <ul className="space-y-2">
+                {/* NUEVA RUTA: Notificaciones */}
+                <li>
+                  <NavLink
+                    to="/requisiciones/notificaciones"
+                    className={SeccionActual}
+                  >
+                    {/* Icon + badge */}
+                    <div className="relative">
+                      <FiBell className="text-xl" />
+                      {totalNoLeidas > 0 && (
+                        <span
+                          className="absolute -top-2 -right-3 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
+                          aria-label={`${totalNoLeidas} notificaciones sin leer`}
+                        >
+                          {totalNoLeidas > 99 ? "99+" : totalNoLeidas}
+                        </span>
+                      )}
+                    </div>
+                    {expandido && <span className="ml-3">Notificaciones</span>}
+                  </NavLink>
+                </li>
                 <li>
                   <NavLink to="/requisiciones" end className={SeccionActual}>
                     <FiFileText className="text-xl" />
@@ -81,14 +121,9 @@ const LayoutProtegido = () => {
                 )}
                 {tieneRolSoloAdmin && (
                   <li>
-                    <NavLink
-                      to="/requisiciones/registrar"
-                      className={SeccionActual}
-                    >
+                    <NavLink to="/requisiciones/registrar" className={SeccionActual}>
                       <FaUserCircle className="text-xl" />
-                      {expandido && (
-                        <span className="ml-3">Cuentas de usuarios</span>
-                      )}
+                      {expandido && <span className="ml-3">Cuentas de usuarios</span>}
                     </NavLink>
                   </li>
                 )}
@@ -99,9 +134,7 @@ const LayoutProtegido = () => {
                       className={SeccionActual}
                     >
                       <FiCheckCircle className="text-xl" />
-                      {expandido && (
-                        <span className="ml-3">Autorizar requisiciones</span>
-                      )}
+                      {expandido && <span className="ml-3">Autorizar requisiciones</span>}
                     </NavLink>
                   </li>
                 )}
@@ -124,12 +157,8 @@ const LayoutProtegido = () => {
                     <FaUserCircle className="w-11 h-11 text-white mr-3" />
                   )}
                   <div>
-                    <div className="font-semibold text-white">
-                      {auth.nombre}
-                    </div>
-                    <div className="text-sm text-white/80">
-                      {auth.area}
-                    </div>
+                    <div className="font-semibold text-white">{auth.nombre}</div>
+                    <div className="text-sm text-white/80">{auth.area}</div>
                   </div>
                 </div>
                 {/* Botón para contraer el menú */}
@@ -183,6 +212,24 @@ const LayoutProtegido = () => {
                       <span className="ml-3">Mis requisiciones</span>
                     </NavLink>
                   </li>
+                  {/* NUEVA RUTA MÓVIL: Notificaciones */}
+                  <li>
+                    <NavLink
+                      to="/requisiciones/notificaciones"
+                      className={SeccionActual}
+                      onClick={() => setMostrarSidebarMovil(false)}
+                    >
+                      <div className="relative">
+                        <FiBell className="text-xl" />
+                        {totalNoLeidas > 0 && (
+                          <span className="absolute -top-2 -right-3 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                            {totalNoLeidas > 99 ? "99+" : totalNoLeidas}
+                          </span>
+                        )}
+                      </div>
+                      <span className="ml-3">Notificaciones</span>
+                    </NavLink>
+                  </li>
                   {tieneRolAdmin && (
                     <li>
                       <NavLink
@@ -190,7 +237,7 @@ const LayoutProtegido = () => {
                         className={SeccionActual}
                         onClick={() => setMostrarSidebarMovil(false)}
                       >
-                        <FiList className="text-xl"/>
+                        <FiList className="text-xl" />
                         <span className="ml-3">Todas las requisiciones</span>
                       </NavLink>
                     </li>
@@ -214,7 +261,7 @@ const LayoutProtegido = () => {
                         className={SeccionActual}
                         onClick={() => setMostrarSidebarMovil(false)}
                       >
-                        <FiCheckCircle className="text-xl"/>
+                        <FiCheckCircle className="text-xl" />
                         <span className="ml-3">Autorizar requisiciones</span>
                       </NavLink>
                     </li>
@@ -240,12 +287,8 @@ const LayoutProtegido = () => {
                     <FaUserCircle className="w-11 h-11 text-white mr-3" />
                   )}
                   <div>
-                    <div className="font-semibold text-white">
-                      {auth.nombre}
-                    </div>
-                    <div className="text-sm text-white/80">
-                      {auth.area}
-                    </div>
+                    <div className="font-semibold text-white">{auth.nombre}</div>
+                    <div className="text-sm text-white/80">{auth.area}</div>
                   </div>
                 </div>
                 <button
@@ -270,7 +313,7 @@ const LayoutProtegido = () => {
               title="Abrir menú"
               className="p-2 bg-blue-900 text-white rounded-md shadow-md"
             >
-              <RiMenuUnfoldLine className="text-2xl" />
+              <RiMenuUnfoldLine className="text-2xl text-white" />
             </button>
           </div>
           {/* Contenido principal */}
@@ -278,10 +321,7 @@ const LayoutProtegido = () => {
             <Outlet />
           </main>
           {/* Modal para el perfil */}
-          <ModalPerfil
-            isOpen={mostrarModal}
-            onRequestClose={() => setMostrarModal(false)}
-          />
+          <ModalPerfil isOpen={mostrarModal} onRequestClose={() => setMostrarModal(false)} />
         </div>
       ) : (
         <Navigate to="/" />

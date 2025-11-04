@@ -12,6 +12,7 @@ import { MisRequisicionesProvider } from "./context/MisRequisicionesProvider";
 import { TodasRequisicionesProvider } from "./context/TodasRequisicionesProvider";
 import { AutorizacionProvider } from "./context/AutorizacionProvider";
 import { CrearRequisicionProvider } from "./context/CrearRequisicionProvider";
+import { NotificacionesProvider } from "./context/NotificacionesProvider";
 
 // Carga perezosa de los layouts y páginas
 const LayoutProtegido = lazy(() => import("./layouts/LayoutProtegido"));
@@ -26,6 +27,9 @@ const EnAutorizacion = lazy(() =>
   import("./pages/requisiciones/EnAutorizacion")
 );
 const Registrar = lazy(() => import("./pages/perfil/Registrar"));
+const Notificaciones = lazy(() =>
+  import("./pages/requisiciones/Notificaciones")
+);
 
 function App() {
   return (
@@ -65,6 +69,15 @@ function App() {
                       <EnAutorizacion />
                     </AutorizacionProvider>
                   </RoleProtectedRoute>
+                }
+              />
+              {/* NUEVA RUTA: Notificaciones para todos los usuarios autenticados */}
+              <Route
+                path="notificaciones"
+                element={
+                  <NotificacionesProvider>
+                    <Notificaciones />
+                  </NotificacionesProvider>
                 }
               />
               {/* Ruta para registrar usuarios, solo admin y superadmin */}

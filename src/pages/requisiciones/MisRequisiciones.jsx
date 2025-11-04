@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
 import { FiSearch } from 'react-icons/fi';
 import TablaRequisiciones from '../../components/tablas/TablaRequisiciones';
@@ -10,7 +11,12 @@ import ResumenRequisiciones from '../../components/ResumenRequisiciones';
 import useMisRequisiciones from '../../hooks/useMisRequisiciones';
 
 const MisRequisiciones = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [yaProcesoNotificacion, setYaProcesoNotificacion] = useState(false);
+
   const {
+    datos, // Agregado para tener acceso a todos los datos sin filtrar
     error,
     opciones,
     modalNuevoActivo,
@@ -39,13 +45,39 @@ const MisRequisiciones = () => {
   // Nuevo estado para filtro por status
   const [filtroStatus, setFiltroStatus] = useState(null);
 
- const handleStatusClick = (status) => {
-  if (status === 'Total General') {
-    setFiltroStatus(null); // Resetea el filtro
-  } else {
-    setFiltroStatus(status);
-  }
-};
+  // NUEVO: Efecto para abrir automáticamente una requisición específica desde notificaciones
+  useEffect(() => {
+    const abrirRequisicionId = location.state?.abrirRequisicionId;
+    
+    if (abrirRequisicionId && datos && datos.length > 0 && !yaProcesoNotificacion) {
+      // Buscar la requisición en los datos
+      const requisicionEncontrada = datos.find(req => req.id === abrirRequisicionId);
+      
+      if (requisicionEncontrada) {
+        // Marcar que ya procesamos esta notificación
+        setYaProcesoNotificacion(true);
+        // Abrir el modal con la requisición encontrada
+        handleRowClick(requisicionEncontrada);
+        // Limpiar el state inmediatamente después de procesar
+        navigate(location.pathname, { replace: true });
+      }
+    }
+  }, [datos, location.state, yaProcesoNotificacion, handleRowClick, navigate, location.pathname]);
+
+  // Resetear cuando no hay abrirRequisicionId (navegación normal)
+  useEffect(() => {
+    if (!location.state?.abrirRequisicionId) {
+      setYaProcesoNotificacion(false);
+    }
+  }, [location.state]);
+
+  const handleStatusClick = (status) => {
+    if (status === 'Total General') {
+      setFiltroStatus(null);
+    } else {
+      setFiltroStatus(status);
+    }
+  };
 
   // Datos filtrados según status y búsqueda
   const datosFiltradosConStatus = filtroStatus
