@@ -4,9 +4,9 @@ import { FiFileText, FiCheckCircle, FiList, FiBell } from "react-icons/fi";
 import { RiMenuFoldLine, RiMenuUnfoldLine } from "react-icons/ri";
 import { FaUserCircle } from "react-icons/fa";
 import useAuth from "../hooks/useAuth";
+import useNotificaciones from "../hooks/useNotificaciones";
 import ModalPerfil from "../components/modales/ModalPerfil";
-import clienteAxios from "../config/clienteAxios";
-import { useQuery } from "@tanstack/react-query";
+
 const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
 
 const LayoutProtegido = () => {
@@ -15,6 +15,8 @@ const LayoutProtegido = () => {
   const [mostrarSidebarMovil, setMostrarSidebarMovil] = useState(false);
 
   const { auth, cargando } = useAuth();
+  const { totalNoLeidas } = useNotificaciones(); // ✅ Obtén desde el contexto
+
   if (cargando) return "Cargando...";
 
   const SeccionActual = ({ isActive }) =>
@@ -31,21 +33,6 @@ const LayoutProtegido = () => {
       ? `${baseUrl}/${auth.imagenPerfil.replace(/\\/g, "/")}`
       : auth.imagenPerfil.url
     : null;
-
-  const { data: totalNoLeidas = 0 } = useQuery({
-    queryKey: ["notificaciones", auth?.id],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const { data } = await clienteAxios.get("/notificaciones", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return Number(data.totalNoLeidas) || 0;
-    },
-    enabled: !!auth?.id,
-    refetchInterval: 30000,
-    refetchOnWindowFocus: true,
-    retry: 1,
-  });
 
   return (
     <>
@@ -329,4 +316,5 @@ const LayoutProtegido = () => {
     </>
   );
 };
+
 export default LayoutProtegido;

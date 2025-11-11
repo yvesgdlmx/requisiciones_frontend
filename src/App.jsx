@@ -40,7 +40,15 @@ function App() {
             <Route path="/" element={<AuthLayout />}>
               <Route index element={<Login />} />
             </Route>
-            <Route path="/requisiciones" element={<LayoutProtegido />}>
+            {/* ✅ ENVUELVE LayoutProtegido con NotificacionesProvider */}
+            <Route 
+              path="/requisiciones" 
+              element={
+                <NotificacionesProvider>
+                  <LayoutProtegido />
+                </NotificacionesProvider>
+              }
+            >
               <Route
                 index
                 element={
@@ -71,16 +79,11 @@ function App() {
                   </RoleProtectedRoute>
                 }
               />
-              {/* NUEVA RUTA: Notificaciones para todos los usuarios autenticados */}
+              {/* ✅ QUITA NotificacionesProvider de aquí ya que está arriba */}
               <Route
                 path="notificaciones"
-                element={
-                  <NotificacionesProvider>
-                    <Notificaciones />
-                  </NotificacionesProvider>
-                }
+                element={<Notificaciones />}
               />
-              {/* Ruta para registrar usuarios, solo admin y superadmin */}
               <Route
                 path="registrar"
                 element={

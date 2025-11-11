@@ -3,7 +3,6 @@ import clienteAxios from "../config/clienteAxios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   FiBell,
   FiFileText,
@@ -25,36 +24,35 @@ export const NotificacionesProvider = ({ children }) => {
 
   const { auth } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const obtenerNotificaciones = async () => {
     try {
       setCargando(true);
       const token = localStorage.getItem("token");
+      if (!token) {
+        setCargando(false);
+        return;
+      }
+
       const { data } = await clienteAxios.get("/notificaciones", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
       setNotificaciones(data.notificaciones || []);
       setNotificacionesFiltradas(data.notificaciones || []);
       setTotalNoLeidas(Number(data.totalNoLeidas) || 0);
-
-      if (auth?.id) {
-        queryClient.setQueryData(
-          ["notificaciones", auth.id],
-          Number(data.totalNoLeidas) || 0
-        );
-      }
-
       setError("");
     } catch (err) {
       console.error("Error:", err);
       setError("Error al cargar notificaciones");
+      setTotalNoLeidas(0);
     } finally {
       setCargando(false);
     }
   };
 
   useEffect(() => {
+    if (!auth?.id) return;
     obtenerNotificaciones();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth?.id]);
@@ -99,13 +97,6 @@ export const NotificacionesProvider = ({ children }) => {
       );
       setTotalNoLeidas((t) => Math.max(0, t - 1));
 
-      if (auth?.id) {
-        queryClient.setQueryData(
-          ["notificaciones", auth.id],
-          (old = 0) => Math.max(0, old - 1)
-        );
-      }
-
       if (auth?.rol === "superadmin" && tipo === "esperando_autorizacion") {
         navigate("/requisiciones/en-autorizacion", {
           state: { abrirRequisicionId: requisicionId },
@@ -113,11 +104,9 @@ export const NotificacionesProvider = ({ children }) => {
         return;
       }
 
-      // Comportamiento por defecto
       handleVerRequisicion(requisicionId);
     } catch (err) {
       console.error("Error marcando notificación leída:", err);
-      if (auth?.id) queryClient.invalidateQueries({ queryKey: ["notificaciones", auth.id] });
       handleVerRequisicion(requisicionId);
     }
   };
@@ -142,13 +131,6 @@ export const NotificacionesProvider = ({ children }) => {
     setNotificaciones((prev) => prev.filter((n) => n.id !== id));
     setNotificacionesFiltradas((prev) => prev.filter((n) => n.id !== id));
     if (eraNoLeida) setTotalNoLeidas((t) => Math.max(0, t - 1));
-
-    if (eraNoLeida && auth?.id) {
-      queryClient.setQueryData(
-        ["notificaciones", auth.id],
-        (old = 0) => Math.max(0, old - 1)
-      );
-    }
 
     setDeletingId(id);
     try {
