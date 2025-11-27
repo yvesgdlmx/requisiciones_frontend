@@ -261,13 +261,14 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
                     >
                       <option value="">Seleccione una opción</option>
                       <option value="Pieza">Pieza</option>
-                      <option value="Galon">Galon</option>
+                      <option value="Galon">Galón</option>
                       <option value="Cubeta">Cubeta</option>
                       <option value="Metros">Metros</option>
                       <option value="Caja">Caja</option>
                       <option value="Paquete">Paquete</option>
                       <option value="Frasco">Frasco</option>
                       <option value="KG">KG</option>
+                      <option value="Bidon">Bidón</option>
                     </select>
                   </div>
                   {/* Número de Parte */}
