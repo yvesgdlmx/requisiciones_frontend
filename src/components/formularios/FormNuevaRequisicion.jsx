@@ -262,6 +262,7 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
                       <option value="">Seleccione una opción</option>
                       <option value="Pieza">Pieza</option>
                       <option value="Galon">Galón</option>
+                      <option value="Litro">Litro</option>
                       <option value="Cubeta">Cubeta</option>
                       <option value="Metros">Metros</option>
                       <option value="Caja">Caja</option>
