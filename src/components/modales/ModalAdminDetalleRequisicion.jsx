@@ -9,11 +9,11 @@ import CardInfoRequisicion from "../cards/CardInfoRequisicion";
 import CardArticulo from "../cards/CardArticulo";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import RequisicionPDF from "../herramientasPDF/RequisicionPDF";
+import useCategorias from "../../hooks/useCategorias";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
 Modal.setAppElement("#root");
 
-// Componente Spinner personalizado
 const LoadingSpinner = () => (
   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
 );
@@ -24,24 +24,26 @@ const ModalAdminDetalleRequisicion = ({
   onClose,
   onUpdate,
 }) => {
+  const { categoriasFiltradas = [] } = useCategorias() || {};
   const [nuevosDocumentos, setNuevosDocumentos] = useState([]);
-  // NUEVO: Estado para manejar archivos existentes que se conservarán
   const [archivosExistentes, setArchivosExistentes] = useState([]);
   const [updatedStatus, setUpdatedStatus] = useState("");
   const [comentario, setComentario] = useState("");
   const [numeroOrdenCompra, setNumeroOrdenCompra] = useState("");
   const [proveedor, setProveedor] = useState("");
   const [tipoCompra, setTipoCompra] = useState("");
-  // NUEVOS ESTADOS: solo monto y ETA
-  const [moneda, setMoneda] = useState("pesos");
+  const [categoriaId, setCategoriaId] = useState("");
+  const [moneda, setMoneda] = useState("MXN");
   const [cantidad, setCantidad] = useState("");
   const [eta, setEta] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // Recuperar el rol del usuario (se asume que se guarda en localStorage)
-  const userRole = localStorage.getItem("rol"); // "admin" o "superadmin"
-  
-  // Opciones para el select de status
+  // Estado para el presupuesto
+  const [presupuestoInfo, setPresupuestoInfo] = useState(null);
+  const [cargandoPresupuesto, setCargandoPresupuesto] = useState(false);
+
+  const userRole = localStorage.getItem("rol");
+
   const statusOptions = [
     "creada",
     "rechazada",
@@ -64,9 +66,11 @@ const ModalAdminDetalleRequisicion = ({
       setNumeroOrdenCompra("");
       setProveedor("");
       setTipoCompra("");
-      setMoneda("pesos");
+      setCategoriaId("");
+      setMoneda("MXN");
       setCantidad("");
       setEta("");
+      setPresupuestoInfo(null);
     }
   }, [isOpen]);
 
@@ -77,36 +81,67 @@ const ModalAdminDetalleRequisicion = ({
       setNumeroOrdenCompra(requisicion.numeroOrdenCompra || "");
       setProveedor(requisicion.proveedor || "");
       setTipoCompra(requisicion.tipoCompra || "");
-      
-      // NUEVO: Inicializar archivos existentes
+      setCategoriaId(requisicion.categoriaId || "");
       setArchivosExistentes(requisicion.archivos || []);
-      
-      // Parsear el monto existente si existe
+
       if (requisicion.monto) {
-        const montoPartes = requisicion.monto.split(" ");
-        if (montoPartes.length === 2) {
-          setCantidad(montoPartes[0]);
-          setMoneda(montoPartes[1]);
+        const partes = requisicion.monto.split(" ");
+        if (partes.length === 2) {
+          setCantidad(partes[0]);
+          setMoneda(partes[1]);
         }
       } else {
         setCantidad("");
-        setMoneda("pesos");
+        setMoneda("MXN");
       }
-      
-      // Formatear la fecha ETA para el input date
+
       if (requisicion.eta) {
         const fecha = new Date(requisicion.eta);
-        const fechaFormateada = fecha.toISOString().split('T')[0];
-        setEta(fechaFormateada);
+        setEta(fecha.toISOString().split("T")[0]);
       } else {
         setEta("");
+      }
+      
+      // Cargar presupuesto si ya tiene categoría
+      if (requisicion.categoriaId) {
+        obtenerPresupuesto(requisicion.categoriaId);
       }
     }
   }, [requisicion]);
 
-  const normalizePath = (filePath) => filePath.replace(/\\/g, "/");
-  const isImage = (filePath) => /\.(jpg|jpeg|png)$/i.test(filePath);
-  const isPDF = (filePath) => /\.pdf$/i.test(filePath);
+  // Obtener presupuesto disponible
+  const obtenerPresupuesto = async (catId) => {
+    if (!catId) {
+      setPresupuestoInfo(null);
+      return;
+    }
+    
+    setCargandoPresupuesto(true);
+    try {
+      const token = localStorage.getItem("token");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await clienteAxios.get(
+        `/categorias/${catId}/presupuesto-disponible`,
+        config
+      );
+      setPresupuestoInfo(data.categoria);
+    } catch (error) {
+      console.error("Error al obtener presupuesto:", error);
+      setPresupuestoInfo(null);
+    } finally {
+      setCargandoPresupuesto(false);
+    }
+  };
+
+  // Handler de cambio de categoría
+  const handleCategoriaChange = (e) => {
+    const catId = e.target.value;
+    setCategoriaId(catId);
+    obtenerPresupuesto(catId);
+  };
+
+  const isImage = (p) => /\.(jpg|jpeg|png)$/i.test(p);
+  const isPDF = (p) => /\.pdf$/i.test(p);
 
   const handleStatusChange = (e) => {
     if (userRole === "superadmin") {
@@ -140,17 +175,16 @@ const ModalAdminDetalleRequisicion = ({
     setNuevosDocumentos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // NUEVA FUNCIÓN: Eliminar archivo existente
   const handleEliminarArchivoExistente = (index) => {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: "Este archivo se eliminará permanentemente cuando guardes los cambios.",
-      icon: 'warning',
+      title: "¿Estás seguro?",
+      text: "Se eliminará al guardar los cambios.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
         setArchivosExistentes((prev) => prev.filter((_, i) => i !== index));
@@ -219,13 +253,10 @@ const ModalAdminDetalleRequisicion = ({
     </div>
   );
 
-  const handleClearComment = () => {
-    setComentario("");
-  };
+  const handleClearComment = () => setComentario("");
 
   const handleSaveChanges = async () => {
     setIsLoading(true);
-    
     try {
       if (userRole === "superadmin" && updatedStatus !== requisicion.status) {
         Swal.fire({
@@ -238,52 +269,57 @@ const ModalAdminDetalleRequisicion = ({
           timer: 3000,
           timerProgressBar: true,
         });
+        setIsLoading(false);
         return;
       }
-      const token = localStorage.getItem("token");
-      const data = new FormData();
-      data.append("status", updatedStatus);
-      data.append("comentario", comentario);
-      data.append("numeroOrdenCompra", numeroOrdenCompra);
-      data.append("proveedor", proveedor);
-      data.append("tipoCompra", tipoCompra === "" ? null : tipoCompra);
       
-      // NUEVOS CAMPOS: solo monto y ETA
-      const montoCompleto = cantidad && moneda ? `${cantidad} ${moneda}` : "";
-      data.append("monto", montoCompleto);
-      data.append("eta", eta);
-      
-      // NUEVO: Enviar archivos existentes que se conservarán
-      data.append("archivosExistentes", JSON.stringify(archivosExistentes));
-      
-      nuevosDocumentos.forEach((file) => {
-        data.append("archivo", file);
-      });
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await clienteAxios.put(
-        `/requisiciones/${requisicion.id}/admin`,
-        data,
-        config
-      );
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: "Requisición actualizada",
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      });
-      if (onUpdate) {
-        onUpdate(response.data.requisicion);
+      // Bloquear cambio a "autorizada" o "aprobada" si no hay presupuesto disponible
+      if ((updatedStatus === "autorizada" || updatedStatus === "aprobada") && 
+          presupuestoInfo && presupuestoInfo.presupuestoDisponible <= 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "No se puede autorizar/aprobar",
+          text: "El presupuesto disponible es insuficiente o se ha agotado. No es posible cambiar el estado a 'autorizada' o 'aprobada'.",
+          confirmButtonText: "Entendido"
+        });
+        setIsLoading(false);
+        return;
       }
-      onClose();
+      
+      // Validación: Verificar si excede el presupuesto
+      if (presupuestoInfo && cantidad && moneda === "MXN") {
+        const montoRequisicion = parseFloat(cantidad);
+        const montoActualRequisicion = requisicion.monto 
+          ? parseFloat(requisicion.monto.split(" ")[0]) 
+          : 0;
+        const diferencia = montoRequisicion - montoActualRequisicion;
+        
+        if (diferencia > presupuestoInfo.presupuestoDisponible) {
+          const resultado = await Swal.fire({
+            icon: "warning",
+            title: "Presupuesto insuficiente",
+            html: `
+              <p>El monto de esta requisición excede el presupuesto disponible.</p>
+              <p class="mt-2"><strong>Disponible:</strong> $${presupuestoInfo.presupuestoDisponible.toLocaleString('es-MX', {minimumFractionDigits: 2})}</p>
+              <p><strong>Monto a agregar:</strong> $${diferencia.toLocaleString('es-MX', {minimumFractionDigits: 2})}</p>
+            `,
+            showCancelButton: true,
+            confirmButtonText: "Guardar de todas formas",
+            cancelButtonText: "Cancelar"
+          });
+          
+          if (!resultado.isConfirmed) {
+            setIsLoading(false);
+            return;
+          }
+        }
+      }
+      
+      await continuarGuardado();
     } catch (error) {
       console.error("Error al actualizar la requisición:", error);
       const mensaje =
-        error.response && error.response.data && error.response.data.msg
-          ? error.response.data.msg
-          : "Ocurrió un error al guardar los cambios.";
+        error.response?.data?.msg || "Ocurrió un error al guardar los cambios.";
       Swal.fire({
         toast: true,
         position: "top-end",
@@ -294,9 +330,45 @@ const ModalAdminDetalleRequisicion = ({
         timer: 3000,
         timerProgressBar: true,
       });
-    } finally {
       setIsLoading(false);
     }
+  };
+  
+  const continuarGuardado = async () => {
+    const token = localStorage.getItem("token");
+    const data = new FormData();
+    data.append("status", updatedStatus);
+    data.append("comentario", comentario);
+    data.append("numeroOrdenCompra", numeroOrdenCompra);
+    data.append("proveedor", proveedor);
+    data.append("tipoCompra", tipoCompra === "" ? null : tipoCompra);
+    data.append("categoriaId", categoriaId === "" ? null : categoriaId);
+    const montoCompleto = cantidad && moneda ? `${cantidad} ${moneda}` : "";
+    data.append("monto", montoCompleto);
+    data.append("eta", eta);
+    data.append("archivosExistentes", JSON.stringify(archivosExistentes));
+    nuevosDocumentos.forEach((file) => data.append("archivo", file));
+
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await clienteAxios.put(
+      `/requisiciones/${requisicion.id}/admin`,
+      data,
+      config
+    );
+
+    Swal.fire({
+      toast: true,
+      position: "top-end",
+      icon: "success",
+      title: "Requisición actualizada",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+    });
+
+    onUpdate?.(response.data.requisicion);
+    onClose();
+    setIsLoading(false);
   };
 
   const handleClose = () => {
@@ -306,9 +378,11 @@ const ModalAdminDetalleRequisicion = ({
     setNumeroOrdenCompra("");
     setProveedor("");
     setTipoCompra("");
-    setMoneda("pesos");
+    setCategoriaId("");
+    setMoneda("MXN");
     setCantidad("");
     setEta("");
+    setPresupuestoInfo(null);
     onClose();
   };
 
@@ -322,7 +396,6 @@ const ModalAdminDetalleRequisicion = ({
       className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl outline-none overflow-hidden flex flex-col max-h-full mx-4"
     >
       {isLoading ? (
-        // Cuando está cargando, mostrar solo el spinner
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <LoadingSpinner />
@@ -330,17 +403,13 @@ const ModalAdminDetalleRequisicion = ({
           </div>
         </div>
       ) : (
-        // Cuando no está cargando, mostrar el contenido normal
         <>
-          {/* HEADER */}
+          {/* Header */}
           <div className="bg-gradient-to-r from-teal-500 to-emerald-600 p-4 sm:p-6 flex justify-between items-center text-white">
             <div>
-              <h2 className="text-lg sm:text-xl font-semibold">
-                Detalle de la Requisición
-              </h2>
+              <h2 className="text-lg sm:text-xl font-semibold">Detalle de la Requisición</h2>
               <p className="text-xs sm:text-sm opacity-90">
-                Folio {requisicion?.folio} · {requisicion?.fecha}{" "}
-                {requisicion?.hora}
+                Folio {requisicion?.folio} · {requisicion?.fecha} {requisicion?.hora}
               </p>
             </div>
             <button
@@ -351,9 +420,9 @@ const ModalAdminDetalleRequisicion = ({
             </button>
           </div>
 
-          {/* BODY */}
+          {/* Body */}
           <div className="p-4 sm:p-6 space-y-6 overflow-y-auto">
-            {/* Información Principal para pantallas pequeñas */}
+            {/* Info móvil */}
             <div className="block sm:hidden">
               <CardInfoRequisicion
                 requisicion={requisicion}
@@ -363,7 +432,7 @@ const ModalAdminDetalleRequisicion = ({
               />
             </div>
 
-            {/* Tabla de Información Principal para pantallas grandes */}
+            {/* Info desktop */}
             <div className="hidden sm:block overflow-x-auto mb-6">
               <table className="min-w-full divide-y divide-gray-200 shadow-sm">
                 <thead className="bg-gray-100">
@@ -404,11 +473,22 @@ const ModalAdminDetalleRequisicion = ({
                         onChange={handleStatusChange}
                         className="border border-gray-300 rounded px-2 py-1"
                       >
-                        {statusOptions.map((status, index) => (
-                          <option key={index} value={status}>
-                            {capitalizeWords(status)}
-                          </option>
-                        ))}
+                        {statusOptions.map((status, index) => {
+                          // Bloquear "autorizada" y "aprobada" si no hay presupuesto disponible
+                          const isDisabled = (status === "autorizada" || status === "aprobada") && 
+                            presupuestoInfo && presupuestoInfo.presupuestoDisponible <= 0;
+                          
+                          return (
+                            <option 
+                              key={index} 
+                              value={status}
+                              disabled={isDisabled}
+                            >
+                              {capitalizeWords(status)}
+                              {isDisabled ? " (presupuesto insuficiente)" : ""}
+                            </option>
+                          );
+                        })}
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -419,12 +499,12 @@ const ModalAdminDetalleRequisicion = ({
               </table>
             </div>
 
-            {/* Artículos de la Requisición */}
+            {/* Artículos móvil */}
             <div className="block sm:hidden">
               <h3 className="text-lg font-bold text-gray-500 mb-3 text-center">
                 Artículos de la Requisición
               </h3>
-              {requisicion?.articulos && requisicion.articulos.length > 0 ? (
+              {requisicion?.articulos?.length ? (
                 requisicion.articulos.map((articulo, index) => (
                   <CardArticulo key={index} articulo={articulo} indice={index} />
                 ))
@@ -433,11 +513,12 @@ const ModalAdminDetalleRequisicion = ({
               )}
             </div>
 
+            {/* Artículos desktop */}
             <div className="hidden sm:block overflow-x-auto mb-6">
               <h3 className="text-lg font-bold text-gray-500 mb-3 text-center">
                 Artículos de la Requisición
               </h3>
-              {requisicion?.articulos && requisicion.articulos.length > 0 ? (
+              {requisicion?.articulos?.length ? (
                 <table className="min-w-full divide-y divide-gray-200 shadow-sm">
                   <thead className="bg-gray-100">
                     <tr>
@@ -479,16 +560,12 @@ const ModalAdminDetalleRequisicion = ({
               )}
             </div>
 
-            {/* Sección de Datos de Compra */}
+            {/* Datos de compra */}
             <div className="bg-gray-50 py-4 px-6 rounded-md border border-gray-100 mb-2">
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                Datos de la Orden de Compra
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">Datos de la Orden de Compra</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-gray-500 text-sm mb-1">
-                    N° Orden de Compra
-                  </label>
+                  <label className="block text-gray-500 text-sm mb-1">N° Orden de Compra</label>
                   <input
                     type="text"
                     value={numeroOrdenCompra}
@@ -498,9 +575,7 @@ const ModalAdminDetalleRequisicion = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm mb-1">
-                    Proveedor
-                  </label>
+                  <label className="block text-gray-500 text-sm mb-1">Proveedor</label>
                   <input
                     type="text"
                     value={proveedor}
@@ -510,9 +585,7 @@ const ModalAdminDetalleRequisicion = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm mb-1">
-                    Tipo de Compra
-                  </label>
+                  <label className="block text-gray-500 text-sm mb-1">Tipo de Compra</label>
                   <select
                     value={tipoCompra}
                     onChange={(e) => setTipoCompra(e.target.value)}
@@ -523,14 +596,99 @@ const ModalAdminDetalleRequisicion = ({
                     <option value="internacional">Internacional</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-gray-500 text-sm mb-1">Categoría de Gasto</label>
+                  <select
+                    value={categoriaId}
+                    onChange={handleCategoriaChange}
+                    className="w-full border border-gray-300 rounded px-2 py-1"
+                  >
+                    <option value="">Seleccione una opción</option>
+                    {categoriasFiltradas.length ? (
+                      categoriasFiltradas.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.nombre.charAt(0).toUpperCase() + cat.nombre.slice(1)}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No hay categorías disponibles</option>
+                    )}
+                  </select>
+                </div>
               </div>
-              
-              {/* NUEVA SECCIÓN: Monto y ETA */}
+
+              {/* Mostrar información del presupuesto */}
+              {cargandoPresupuesto && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-600">Cargando información del presupuesto...</p>
+                </div>
+              )}
+
+              {presupuestoInfo && !cargandoPresupuesto && (
+                <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm">
+                  <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Información del Presupuesto
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="bg-white p-3 rounded-md shadow-sm">
+                      <p className="text-xs text-gray-500 mb-1">Presupuesto Total</p>
+                      <p className="text-lg font-bold text-gray-800">
+                        ${presupuestoInfo.presupuestoTotal.toLocaleString('es-MX', {minimumFractionDigits: 2})}
+                      </p>
+                    </div>
+                    <div className="bg-white p-3 rounded-md shadow-sm">
+                      <p className="text-xs text-gray-500 mb-1">Presupuesto Usado</p>
+                      <p className="text-lg font-bold text-orange-600">
+                        ${presupuestoInfo.presupuestoUsado.toLocaleString('es-MX', {minimumFractionDigits: 2})}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {presupuestoInfo.porcentajeUsado}% utilizado
+                      </p>
+                    </div>
+                    <div className="bg-white p-3 rounded-md shadow-sm">
+                      <p className="text-xs text-gray-500 mb-1">Disponible</p>
+                      <p className={`text-lg font-bold ${
+                        presupuestoInfo.presupuestoDisponible > 0 
+                          ? 'text-green-600' 
+                          : 'text-red-600'
+                      }`}>
+                        ${presupuestoInfo.presupuestoDisponible.toLocaleString('es-MX', {minimumFractionDigits: 2})}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-gray-600">
+                    <p>
+                      <strong>Período:</strong> {presupuestoInfo.diasPeriodo || 0} días
+                      <span className="ml-2">
+                        ({new Date(presupuestoInfo.fechaInicio).toLocaleString('es-MX', {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})} - {new Date(presupuestoInfo.fechaFin).toLocaleString('es-MX', {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})})
+                      </span>
+                    </p>
+                  </div>
+                  
+                  {/* Barra de progreso */}
+                  <div className="mt-3">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div 
+                        className={`h-2.5 rounded-full ${
+                          presupuestoInfo.porcentajeUsado >= 90 
+                            ? 'bg-red-600' 
+                            : presupuestoInfo.porcentajeUsado >= 70 
+                            ? 'bg-yellow-500' 
+                            : 'bg-green-500'
+                        }`}
+                        style={{ width: `${Math.min(presupuestoInfo.porcentajeUsado, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-gray-500 text-sm mb-1">
-                    Monto
-                  </label>
+                  <label className="block text-gray-500 text-sm mb-1">Monto</label>
                   <div className="flex gap-2">
                     <input
                       type="number"
@@ -553,9 +711,7 @@ const ModalAdminDetalleRequisicion = ({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm mb-1">
-                    ETA (Fecha Estimada de Entrega)
-                  </label>
+                  <label className="block text-gray-500 text-sm mb-1">ETA (Fecha Estimada de Entrega)</label>
                   <input
                     type="date"
                     value={eta}
@@ -566,7 +722,7 @@ const ModalAdminDetalleRequisicion = ({
               </div>
             </div>
 
-            {/* Sección de Comentario */}
+            {/* Comentario comprador */}
             <div className="space-y-2">
               <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-2">
                 Comentario del comprador
@@ -590,7 +746,7 @@ const ModalAdminDetalleRequisicion = ({
               </div>
             </div>
 
-             {/* NUEVA SECCIÓN: Comentario del Autorizador */}
+            {/* Comentario Autorizador */}
             <div className="bg-blue-50 py-4 px-6 rounded-md border border-gray-100 mb-2">
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
                 Comentario del Autorizador
@@ -604,9 +760,8 @@ const ModalAdminDetalleRequisicion = ({
               )}
             </div>
 
-            {/* Sección de Links relacionados */}
-            
-            {requisicion?.links && requisicion.links.length > 0 && (
+            {/* Links */}
+            {requisicion?.links?.length > 0 && (
               <div>
                 <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
                   🔗 Links relacionados
@@ -640,23 +795,14 @@ const ModalAdminDetalleRequisicion = ({
               </div>
             )}
 
-            {/* Sección de Documentos - MODIFICADA */}
+            {/* Documentos */}
             <div>
-              <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
-                📂 Documentos
-              </h3>
+              <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">📂 Documentos</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {archivosExistentes && archivosExistentes.length > 0 ? (
+                {archivosExistentes?.length ? (
                   archivosExistentes.map((archivo, index) => {
-                    // Soporta ambos formatos: objeto (nuevo) o string (antiguo)
-                    const fileUrl =
-                      typeof archivo === "string" ? archivo : archivo.url;
-                    // Normaliza solo si es string
-                    const normalizedPath =
-                      typeof fileUrl === "string"
-                        ? fileUrl.replace(/\\/g, "/")
-                        : "";
-                    // Si es URL absoluta, úsala tal cual; si no, agrega baseUrl
+                    const fileUrl = typeof archivo === "string" ? archivo : archivo.url;
+                    const normalizedPath = typeof fileUrl === "string" ? fileUrl.replace(/\\/g, "/") : "";
                     const urlCompleta = fileUrl.startsWith("http")
                       ? fileUrl
                       : `${baseUrl}/${normalizedPath}`;
@@ -665,7 +811,6 @@ const ModalAdminDetalleRequisicion = ({
                         key={index}
                         className="relative border border-gray-200 rounded-lg shadow-sm overflow-hidden cursor-pointer transform hover:scale-105 transition flex flex-col"
                       >
-                        {/* NUEVO: Botón de eliminar */}
                         <button
                           type="button"
                           onClick={() => handleEliminarArchivoExistente(index)}
@@ -674,11 +819,8 @@ const ModalAdminDetalleRequisicion = ({
                         >
                           <FaTimes className="text-xs" />
                         </button>
-                        
-                        <div 
-                          className="flex-1"
-                          onClick={() => window.open(urlCompleta, "_blank")}
-                        >
+
+                        <div className="flex-1" onClick={() => window.open(urlCompleta, "_blank")}>
                           {isImage(urlCompleta) ? (
                             <img
                               src={urlCompleta}
@@ -687,15 +829,9 @@ const ModalAdminDetalleRequisicion = ({
                             />
                           ) : isPDF(urlCompleta) ? (
                             <div className="w-full h-32 overflow-hidden pointer-events-none">
-                              <object
-                                data={urlCompleta}
-                                type="application/pdf"
-                                className="w-full h-full pointer-events-none"
-                              >
+                              <object data={urlCompleta} type="application/pdf" className="w-full h-full pointer-events-none">
                                 <div className="flex items-center justify-center h-32">
-                                  <span className="text-xs">
-                                    Vista previa no disponible
-                                  </span>
+                                  <span className="text-xs">Vista previa no disponible</span>
                                 </div>
                               </object>
                             </div>
@@ -722,9 +858,7 @@ const ModalAdminDetalleRequisicion = ({
                     );
                   })
                 ) : (
-                  <p className="text-gray-500 col-span-2">
-                    No se han subido documentos.
-                  </p>
+                  <p className="text-gray-500 col-span-2">No se han subido documentos.</p>
                 )}
               </div>
               <div className="mt-6">
@@ -745,7 +879,7 @@ const ModalAdminDetalleRequisicion = ({
             </div>
           </div>
 
-          {/* FOOTER */}
+          {/* Footer */}
           <div className="px-4 sm:px-6 py-3 bg-gray-50 flex justify-end items-center gap-3">
             <PDFDownloadLink
               document={<RequisicionPDF requisicion={requisicion} />}

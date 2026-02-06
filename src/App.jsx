@@ -13,6 +13,8 @@ import { TodasRequisicionesProvider } from "./context/TodasRequisicionesProvider
 import { AutorizacionProvider } from "./context/AutorizacionProvider";
 import { CrearRequisicionProvider } from "./context/CrearRequisicionProvider";
 import { NotificacionesProvider } from "./context/NotificacionesProvider";
+import { CategoriasProvider } from "./context/CategoriasProvider";
+import { HistorialGastosProvider } from "./context/HistorialGastosProvider";
 
 // Carga perezosa de los layouts y páginas
 const LayoutProtegido = lazy(() => import("./layouts/LayoutProtegido"));
@@ -29,6 +31,12 @@ const EnAutorizacion = lazy(() =>
 const Registrar = lazy(() => import("./pages/perfil/Registrar"));
 const Notificaciones = lazy(() =>
   import("./pages/requisiciones/Notificaciones")
+);
+const ListadoCategorias = lazy(() =>
+  import("./pages/categorias/ListadoCategorias")
+);
+const HistorialGastos = lazy(() =>
+  import("./pages/categorias/HistorialGastos")
 );
 
 function App() {
@@ -64,7 +72,9 @@ function App() {
                 element={
                   <RoleProtectedRoute allowedRoles={["admin", "superadmin"]}>
                     <TodasRequisicionesProvider>
-                      <TodasRequisiciones />
+                      <CategoriasProvider>
+                        <TodasRequisiciones />
+                      </CategoriasProvider>
                     </TodasRequisicionesProvider>
                   </RoleProtectedRoute>
                 }
@@ -89,6 +99,26 @@ function App() {
                 element={
                   <RoleProtectedRoute allowedRoles={["admin"]}>
                     <Registrar />
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="categorias"
+                element={
+                  <RoleProtectedRoute allowedRoles={["superadmin"]}>
+                    <CategoriasProvider>
+                      <ListadoCategorias />
+                    </CategoriasProvider>
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="historial-gastos"
+                element={
+                  <RoleProtectedRoute allowedRoles={["superadmin"]}>
+                    <HistorialGastosProvider>
+                      <HistorialGastos/>
+                    </HistorialGastosProvider>
                   </RoleProtectedRoute>
                 }
               />

@@ -18,7 +18,6 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
     handleRemoveLink,
   } = useCrearRequisicion();
 
-  // Notificar al modal sobre el estado de loading
   React.useEffect(() => {
     if (setModalLoading) {
       setModalLoading(isLoading);
@@ -31,21 +30,15 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
         onSubmit={(e) => handleSubmit(e, onClose, resetModal)}
         className="w-full"
       >
-        <div className="bg-white shadow-xl rounded-2xl p-8 max-w-5xl mx-auto border border-gray-200">
-          {/* Encabezado */}
-          <header className="mb-8 pb-2">
-            <p className="mt-2 text-gray-500 text-center">
-              Ingrese la información requerida para generar la solicitud.
-            </p>
-          </header>
+        {/* Removí el wrapper extra con shadow, ahora está más limpio */}
+        <div className="space-y-6">
           
           {/* Datos Generales */}
-          <section className="mb-8">
+          <section>
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
               Datos Generales
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Objetivo de la solicitud */}
               <div>
                 <label
                   htmlFor="objetivo"
@@ -64,7 +57,6 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
                   disabled={isLoading}
                 />
               </div>
-              {/* Prioridad */}
               <div>
                 <label
                   htmlFor="prioridad"
@@ -90,7 +82,7 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
           </section>
           
           {/* Links relacionados */}
-          <section className="mb-8">
+          <section>
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
               Links De Referencia (opcional)
             </h3>
@@ -143,9 +135,9 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
           </section>
           
           {/* Subida de Archivos */}
-          <section className="mb-8">
+          <section>
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              Subir Archivos <br></br> <span className="text-sm text-blue-500">(Cotización)</span>
+              Subir Archivos <br/> <span className="text-sm text-blue-500">(Cotización)</span>
             </h3> 
             <div>
               <button
@@ -209,7 +201,7 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
           </section>
           
           {/* Artículos */}
-          <section className="mb-8">
+          <section>
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
               Artículos Solicitados
             </h3>
@@ -222,7 +214,6 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
                 className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-6 shadow-sm"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Cantidad */}
                   <div>
                     <label
                       htmlFor={`cantidad-${index}`}
@@ -242,7 +233,6 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
                       disabled={isLoading}
                     />
                   </div>
-                  {/* Unidad de Medida */}
                   <div>
                     <label
                       htmlFor={`unidadMedida-${index}`}
@@ -262,7 +252,6 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
                       <option value="">Seleccione una opción</option>
                       <option value="Pieza">Pieza</option>
                       <option value="Galon">Galón</option>
-                      <option value="Litro">Litro</option>
                       <option value="Cubeta">Cubeta</option>
                       <option value="Metros">Metros</option>
                       <option value="Caja">Caja</option>
@@ -272,7 +261,6 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
                       <option value="Bidon">Bidón</option>
                     </select>
                   </div>
-                  {/* Número de Parte */}
                   <div>
                     <label
                       htmlFor={`numeroParte-${index}`}
@@ -290,7 +278,6 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
                       disabled={isLoading}
                     />
                   </div>
-                  {/* Descripción */}
                   <div>
                     <label
                       htmlFor={`descripcion-${index}`}
@@ -347,8 +334,8 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
             </button>
           </section>
           
-          {/* Botones de Acción */}
-          <footer className="flex justify-end space-x-4">
+          {/* Botones de Acción - Ahora en footer fijo estilo admin */}
+          <div className="sticky bottom-0 bg-gray-50 -mx-6 -mb-6 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
             <button
               type="button"
               onClick={() => onClose && onClose()}
@@ -364,7 +351,7 @@ const FormNuevaRequisicion = ({ onClose, resetModal, setModalLoading }) => {
             >
               {isLoading ? "Guardando..." : "Guardar"}
             </button>
-          </footer>
+          </div>
         </div>
       </form>
     </div>

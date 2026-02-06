@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaTrash, FaPencilAlt, FaExclamationTriangle } from "react-icons/fa"; // Ícono para "nueva"
+import { FaTrash, FaPencilAlt, FaExclamationTriangle } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { capitalizeWords, esRequisicionInactiva } from "../../helpers/FuncionesHelpers";
 
@@ -31,9 +31,7 @@ const TablaRequisiciones = ({
   onRowClick,
   onEditarClick,
   onEliminarClick,
-  // Prop opcional que activa el ícono de "nuevo"
   mostrarNotificacion = false,
-  // NUEVA PROP: para mostrar las columnas de ETA y Monto
   mostrarColumnasAdmin = false,
 }) => {
   const [pagina, setPagina] = useState(1);
@@ -44,15 +42,13 @@ const TablaRequisiciones = ({
     indiceInicio + itemsPorPagina
   );
 
-  // Función para determinar si se permite la acción (menos de 1 hora de diferencia)
   const accionPermitida = (item) => {
     if (!item.fechaOriginal) return true;
     const ahora = new Date();
     const diferencia = ahora - new Date(item.fechaOriginal);
-    return diferencia <= 3600000; // 1 hora en milisegundos
+    return diferencia <= 3600000;
   };
 
-  // Función para formatear ETA
   const formatearETA = (eta) => {
     if (!eta) return "No asignada";
     const fecha = new Date(eta);
@@ -65,6 +61,43 @@ const TablaRequisiciones = ({
   };
   const handleNextPage = () => {
     if (pagina < totalPaginas) setPagina((prev) => prev + 1);
+  };
+
+  // 🔥 NUEVA FUNCIÓN: Generar números de página inteligentes
+  const generarNumerosPagina = () => {
+    const paginas = [];
+    const maxBotones = 5; // Máximo de botones a mostrar
+
+    if (totalPaginas <= maxBotones) {
+      // Si hay pocas páginas, mostrar todas
+      for (let i = 1; i <= totalPaginas; i++) {
+        paginas.push(i);
+      }
+    } else {
+      // Siempre mostrar primera página
+      paginas.push(1);
+
+      if (pagina > 3) {
+        paginas.push("...");
+      }
+
+      // Páginas alrededor de la actual
+      const inicio = Math.max(2, pagina - 1);
+      const fin = Math.min(totalPaginas - 1, pagina + 1);
+
+      for (let i = inicio; i <= fin; i++) {
+        paginas.push(i);
+      }
+
+      if (pagina < totalPaginas - 2) {
+        paginas.push("...");
+      }
+
+      // Siempre mostrar última página
+      paginas.push(totalPaginas);
+    }
+
+    return paginas;
   };
 
   const colorStatus = (status) => {
@@ -96,7 +129,6 @@ const TablaRequisiciones = ({
     }
   };
 
-  // Función para editar
   const handleEditar = (item, e) => {
     e.stopPropagation();
     if (item.status !== "creada") {
@@ -122,7 +154,6 @@ const TablaRequisiciones = ({
     }
   };
 
-  // Función para eliminar
   const handleEliminar = (item, e) => {
     e.stopPropagation();
     if (item.status !== "creada") {
@@ -160,7 +191,6 @@ const TablaRequisiciones = ({
               <th className="px-4 py-2 text-left">Área</th>
               <th className="px-4 py-2 text-left">Comprador</th>
               <th className="px-4 py-2 text-left">Prioridad</th>
-              {/* NUEVAS COLUMNAS: Solo si mostrarColumnasAdmin es true */}
               {mostrarColumnasAdmin && (
                 <>
                   <th className="px-4 py-2 text-left">Monto</th>
@@ -186,7 +216,6 @@ const TablaRequisiciones = ({
                         title="Más de 48 horas sin actividad"
                       />
                     )}
-                    {/* Se muestra el ícono "nuevo" solo si mostrarNotificacion es true */}
                     {mostrarNotificacion && item.status === "creada" && (
                       <p className="bg-red-600 text-white px-[5.5px] py-[1.5px] text-xs rounded-full font-semibold">
                         new
@@ -216,7 +245,6 @@ const TablaRequisiciones = ({
                     : "Esperando Comprador"}
                 </td>
                 <td className="px-4 py-4">{capitalizeWords(item.prioridad)}</td>
-                 {/* NUEVAS COLUMNAS DE DATOS */}
                 {mostrarColumnasAdmin && (
                   <>
                     <td className="px-4 py-4">
@@ -290,19 +318,31 @@ const TablaRequisiciones = ({
             >
               Anterior
             </button>
-            {Array.from({ length: totalPaginas }, (_, index) => (
-              <button
-                key={index}
-                onClick={() => seleccionarPagina(index + 1)}
-                className={`px-3 py-1 rounded border border-gray-300 ${
-                  pagina === index + 1
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-gray-700"
-                }`}
-              >
-                {index + 1}
-              </button>
-            ))}
+            {generarNumerosPagina().map((numero, index) => {
+              if (numero === "...") {
+                return (
+                  <span
+                    key={`dots-${index}`}
+                    className="px-3 py-1 text-gray-500"
+                  >
+                    ...
+                  </span>
+                );
+              }
+              return (
+                <button
+                  key={numero}
+                  onClick={() => seleccionarPagina(numero)}
+                  className={`px-3 py-1 rounded border border-gray-300 ${
+                    pagina === numero
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-700"
+                  }`}
+                >
+                  {numero}
+                </button>
+              );
+            })}
             <button
               onClick={handleNextPage}
               className="px-3 py-1 rounded border border-gray-300 disabled:opacity-50"

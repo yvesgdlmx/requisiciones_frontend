@@ -3,19 +3,15 @@ import Modal from "react-modal";
 import clienteAxios from "../../config/clienteAxios";
 import Swal from "sweetalert2";
 
-// Configuración para react-modal
 Modal.setAppElement("#root");
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
-const normalizePath = (filePath) => filePath.replace(/\\/g, "/");
 
-// Componente Spinner personalizado
 const LoadingSpinner = () => (
   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
 );
 
 const renderArchivo = (file, index, removerArchivoExistente, isLoading) => {
-  // Soporta ambos formatos: objeto (nuevo) o string (antiguo)
   const fileUrl = typeof file === "string" ? file : file.url;
   const extension = fileUrl.split(".").pop().toLowerCase();
 
@@ -23,7 +19,7 @@ const renderArchivo = (file, index, removerArchivoExistente, isLoading) => {
     return (
       <div
         key={index}
-        className="relative w-24 h-24 border rounded-md overflow-visible"
+        className="relative w-32 h-32 border rounded-lg overflow-hidden flex items-center justify-center bg-gray-50"
       >
         <object
           data={fileUrl}
@@ -32,38 +28,35 @@ const renderArchivo = (file, index, removerArchivoExistente, isLoading) => {
           height="100%"
           className="pointer-events-none"
         >
-          <p className="text-xs text-gray-600">
-            PDF –{" "}
-            <a href={fileUrl} target="_blank" rel="noopener noreferrer">
-              Abrir
-            </a>
-          </p>
+          <div className="flex items-center justify-center h-full">
+            <span className="text-xs text-gray-600">Vista previa no disponible</span>
+          </div>
         </object>
         <button
           type="button"
           onClick={() => removerArchivoExistente(index)}
-          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-md z-10 pb-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 z-10 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isLoading}
         >
-          x
+          ×
         </button>
       </div>
     );
   } else {
     return (
-      <div key={index} className="relative">
+      <div key={index} className="relative w-32 h-32">
         <img
           src={fileUrl}
           alt={`Archivo ${index + 1}`}
-          className="w-24 h-24 object-cover border rounded-md"
+          className="w-full h-full object-cover border rounded-lg"
         />
         <button
           type="button"
           onClick={() => removerArchivoExistente(index)}
-          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-md pb-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 z-10 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isLoading}
         >
-          x
+          ×
         </button>
       </div>
     );
@@ -71,8 +64,6 @@ const renderArchivo = (file, index, removerArchivoExistente, isLoading) => {
 };
 
 const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
-  // El estado inicial no incluye los archivos ya existentes en "formData",
-  // ya que estos se mantienen en "preservedFiles"
   const initialFormState = {
     objetivo: requisicion?.objetivo || "",
     prioridad: requisicion?.prioridad || "moderado",
@@ -81,15 +72,11 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
     links: requisicion?.links || [],
   };
   
-  // Estado para el formulario y para los archivos existentes
   const [formData, setFormData] = useState(initialFormState);
-  const [preservedFiles, setPreservedFiles] = useState(
-    requisicion?.archivos || []
-  );
+  const [preservedFiles, setPreservedFiles] = useState(requisicion?.archivos || []);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Cada vez que cambie la requisición se reestablece el formulario y preservedFiles.
   useEffect(() => {
     if (requisicion) {
       setFormData({
@@ -108,7 +95,6 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  //Manejo de links
   const handleAddLink = () => {
     setFormData((prev) => ({
       ...prev,
@@ -131,7 +117,6 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
     }));
   };
 
-  // Manejo de artículos
   const handleAddArticulo = () => {
     setFormData((prev) => ({
       ...prev,
@@ -159,7 +144,6 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
     }));
   };
 
-  // Manejo de archivos nuevos
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     setFormData((prev) => ({
@@ -176,7 +160,6 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
     }));
   };
 
-  // Función para remover un archivo existente y actualizar preservedFiles
   const removerArchivoExistente = (index) => {
     setPreservedFiles((prev) => prev.filter((_, i) => i !== index));
   };
@@ -193,9 +176,7 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
       data.append("prioridad", formData.prioridad);
       data.append("articulos", JSON.stringify(formData.articulos));
       data.append("links", JSON.stringify(formData.links || []));
-      // Enviamos los archivos existentes que no fueron removidos
       data.append("archivosExistentes", JSON.stringify(preservedFiles));
-      // Adjuntamos cada uno de los nuevos archivos
       formData.archivos.forEach((file) => {
         data.append("archivo", file);
       });
@@ -223,7 +204,6 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
         timerProgressBar: true,
       });
 
-      // Solo se resetean los archivos nuevos; los existentes se mantienen según la respuesta del backend
       setFormData((prev) => ({ ...prev, archivos: [] }));
       onClose();
     } catch (error) {
@@ -257,71 +237,97 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
         }
       }}
       contentLabel="Editar Requisición"
-      overlayClassName="fixed inset-0 flex justify-center items-center"
-      style={{ overlay: { backgroundColor: "rgba(0, 0, 0, 0.42)" } }}
-      className="w-full max-w-3xl p-8 bg-white rounded-lg shadow-xl outline-none mx-4 max-h-[90vh] overflow-y-auto"
+      overlayClassName="fixed inset-0 flex justify-center items-center z-50 p-4"
+      style={{ overlay: { backgroundColor: "rgba(0, 0, 0, 0.5)" } }}
+      className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl outline-none overflow-hidden flex flex-col max-h-full mx-4"
     >
       {isLoading ? (
-        // Cuando está cargando, mostrar solo el spinner
-        <div className="flex items-center justify-center min-h-[200px]">
+        <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <LoadingSpinner />
             <p className="text-gray-600 font-medium mt-4">Actualizando requisición...</p>
           </div>
         </div>
       ) : (
-        // Cuando no está cargando, mostrar el contenido normal
         <>
-          <h2 className="text-2xl font-bold mb-6 text-gray-600 text-center">
-            Editar Requisición
-          </h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Sección de Datos Generales */}
-            <section className="grid grid-cols-1 gap-6">
-              <div>
-                <label
-                  htmlFor="objetivo"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Objetivo
-                </label>
-                <textarea
-                  name="objetivo"
-                  id="objetivo"
-                  value={formData.objetivo}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-3"
-                  rows="2"
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="prioridad"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Prioridad
-                </label>
-                <select
-                  name="prioridad"
-                  id="prioridad"
-                  value={formData.prioridad}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-3"
-                  disabled={isLoading}
-                >
-                  <option value="muy alto">Muy alto</option>
-                  <option value="alto">Alto</option>
-                  <option value="moderado">Moderado</option>
-                </select>
+          {/* Header verde degradado */}
+          <div className="bg-gradient-to-r from-teal-500 to-emerald-600 p-4 sm:p-6 flex justify-between items-center text-white">
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold">Editar Requisición</h2>
+              <p className="text-xs sm:text-sm opacity-90">
+                Folio {requisicion?.folio} · Modifica la información según sea necesario
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                if (!isLoading) {
+                  setFormData({
+                    objetivo: requisicion?.objetivo || "",
+                    prioridad: requisicion?.prioridad || "moderado",
+                    articulos: requisicion?.articulos || [],
+                    archivos: [],
+                  });
+                  onClose();
+                }
+              }}
+              className="bg-white/20 hover:bg-white/30 py-1 px-2.5 rounded-full transition"
+              disabled={isLoading}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Body con scroll */}
+          <div className="p-4 sm:p-6 overflow-y-auto space-y-6">
+            
+            {/* Datos Generales */}
+            <section>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Datos Generales</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="objetivo"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Objetivo
+                  </label>
+                  <textarea
+                    name="objetivo"
+                    id="objetivo"
+                    value={formData.objetivo}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300 transition"
+                    rows="3"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="prioridad"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Prioridad
+                  </label>
+                  <select
+                    name="prioridad"
+                    id="prioridad"
+                    value={formData.prioridad}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300 transition"
+                    disabled={isLoading}
+                  >
+                    <option value="muy alto">Muy Alto</option>
+                    <option value="alto">Alto</option>
+                    <option value="moderado">Moderado</option>
+                  </select>
+                </div>
               </div>
             </section>
-            
-            {/* Sección de Artículos */}
+
+            {/* Artículos */}
             <section>
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 Artículos Solicitados
               </h3>
               {formData.articulos?.length === 0 && (
@@ -336,7 +342,7 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                     <div>
                       <label
                         htmlFor={`cantidad-${index}`}
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 mb-1"
                       >
                         Cantidad
                       </label>
@@ -346,7 +352,7 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                         name="cantidad"
                         value={articulo.cantidad}
                         onChange={(e) => handleChangeArticulo(index, e)}
-                        className="mt-1 block w-full p-3 border border-gray-300 rounded-md"
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300 transition"
                         required
                         min="0"
                         disabled={isLoading}
@@ -355,7 +361,7 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                     <div>
                       <label
                         htmlFor={`unidadMedida-${index}`}
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 mb-1"
                       >
                         Unidad de Medida
                       </label>
@@ -364,25 +370,26 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                         name="unidadMedida"
                         value={articulo.unidadMedida}
                         onChange={(e) => handleChangeArticulo(index, e)}
-                        className="mt-1 block w-full p-3 border border-gray-300 rounded-md"
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300 transition"
                         required
                         disabled={isLoading}
                       >
                         <option value="">Seleccione una opción</option>
                         <option value="Pieza">Pieza</option>
-                        <option value="Galon">Galon</option>
+                        <option value="Galon">Galón</option>
                         <option value="Cubeta">Cubeta</option>
                         <option value="Metros">Metros</option>
                         <option value="Caja">Caja</option>
                         <option value="Paquete">Paquete</option>
                         <option value="Frasco">Frasco</option>
                         <option value="KG">KG</option>
+                        <option value="Bidon">Bidón</option>
                       </select>
                     </div>
                     <div>
                       <label
                         htmlFor={`numeroParte-${index}`}
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 mb-1"
                       >
                         Número de Parte (opcional)
                       </label>
@@ -392,14 +399,14 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                         name="numeroParte"
                         value={articulo.numeroParte}
                         onChange={(e) => handleChangeArticulo(index, e)}
-                        className="mt-1 block w-full p-3 border border-gray-300 rounded-md"
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300 transition"
                         disabled={isLoading}
                       />
                     </div>
                     <div>
                       <label
                         htmlFor={`descripcion-${index}`}
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 mb-1"
                       >
                         Descripción
                       </label>
@@ -409,7 +416,7 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                         value={articulo.descripcion}
                         onChange={(e) => handleChangeArticulo(index, e)}
                         rows="3"
-                        className="mt-1 block w-full p-3 border border-gray-300 rounded-md"
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300 transition"
                         disabled={isLoading}
                       />
                     </div>
@@ -448,22 +455,22 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                 Agregar artículo
               </button>
             </section>
-            
-            {/* Sección de Links */}
+
+            {/* Links */}
             <section>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Links relacionados (opcional)
-              </label>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Links Relacionados (opcional)
+              </h3>
               {formData.links && formData.links.length > 0 && (
-                <div className="mb-2 space-y-2">
+                <div className="mb-4 space-y-2">
                   {formData.links.map((link, index) => (
-                    <div key={index} className="flex items-center mb-2">
+                    <div key={index} className="flex items-center gap-2">
                       <input
                         type="url"
                         name={`link-${index}`}
                         value={link}
                         onChange={(e) => handleChangeLink(index, e.target.value)}
-                        className="flex-1 p-3 border border-gray-300 rounded-md mr-2"
+                        className="flex-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                         placeholder="https://ejemplo.com"
                         disabled={isLoading}
                       />
@@ -482,7 +489,7 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
               <button
                 type="button"
                 onClick={handleAddLink}
-                className="inline-flex items-center px-5 py-2 border border-dashed border-blue-500 rounded-md text-blue-500 hover:bg-blue-50 transition-colors duration-200 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-5 py-3 border border-dashed border-blue-500 rounded-md text-blue-500 hover:bg-blue-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isLoading}
               >
                 <svg
@@ -501,14 +508,14 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                 Agregar Link
               </button>
             </section>
-            
-            {/* Sección de Archivos */}
+
+            {/* Archivos */}
             <section>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">📂 Documentos</h3>
+              
               {preservedFiles?.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Archivos existentes
-                  </label>
+                <div className="mb-6">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Archivos existentes</h4>
                   <div className="flex flex-wrap gap-4">
                     {preservedFiles.map((file, index) =>
                       renderArchivo(file, index, removerArchivoExistente, isLoading)
@@ -516,16 +523,30 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                   </div>
                 </div>
               )}
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Agregar nuevos archivos (Imagen o PDF)
                 </label>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
-                  className="mb-2 px-4 py-2 border border-dashed border-gray-400 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center px-5 py-3 border border-dashed border-blue-500 rounded-md text-blue-500 hover:bg-blue-50 transition-colors duration-200 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isLoading}
                 >
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
                   Agregar Archivo
                 </button>
                 <input
@@ -540,18 +561,18 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                   disabled={isLoading}
                 />
                 {formData.archivos?.length > 0 && (
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-4 space-y-2">
                     {formData.archivos.map((file, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between border border-gray-300 rounded-md px-3 py-1"
+                        className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-md"
                       >
-                        <span className="text-sm truncate" title={file.name}>
+                        <span className="text-sm text-gray-600 truncate" title={file.name}>
                           {file.name}
                         </span>
                         <button
                           type="button"
-                          className="text-red-500 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="text-red-500 hover:underline text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                           onClick={() => removerNuevoArchivo(index)}
                           disabled={isLoading}
                         >
@@ -563,37 +584,37 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
                 )}
               </div>
             </section>
-            
-            {/* Botones de Acción */}
-            <footer className="flex justify-end space-x-4 pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isLoading) {
-                    // Reiniciamos el formulario sin afectar preservedFiles
-                    setFormData({
-                      objetivo: requisicion?.objetivo || "",
-                      prioridad: requisicion?.prioridad || "moderado",
-                      articulos: requisicion?.articulos || [],
-                      archivos: [],
-                    });
-                    onClose();
-                  }
-                }}
-                className="px-6 py-3 border rounded-md border-gray-400 text-gray-800 hover:bg-gray-100 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading}
-              >
-                {isLoading ? "Guardando cambios..." : "Guardar Cambios"}
-              </button>
-            </footer>
-          </form>
+          </div>
+
+          {/* Footer fijo */}
+          <div className="sticky bottom-0 bg-gray-50 px-4 sm:px-6 py-3 flex justify-end items-center gap-3 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={() => {
+                if (!isLoading) {
+                  setFormData({
+                    objetivo: requisicion?.objetivo || "",
+                    prioridad: requisicion?.prioridad || "moderado",
+                    articulos: requisicion?.articulos || [],
+                    archivos: [],
+                  });
+                  onClose();
+                }
+              }}
+              className="px-6 py-3 border rounded-md border-gray-400 text-gray-800 hover:bg-gray-100 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              disabled={isLoading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              disabled={isLoading}
+            >
+              {isLoading ? "Guardando cambios..." : "Guardar Cambios"}
+            </button>
+          </div>
         </>
       )}
     </Modal>

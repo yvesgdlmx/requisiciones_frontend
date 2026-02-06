@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, Navigate } from "react-router-dom";
-import { FiFileText, FiCheckCircle, FiList, FiBell } from "react-icons/fi";
+import { FiFileText, FiCheckCircle, FiList, FiBell, FiTrendingDown } from "react-icons/fi";
 import { RiMenuFoldLine, RiMenuUnfoldLine } from "react-icons/ri";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaFolderOpen } from "react-icons/fa";
 import useAuth from "../hooks/useAuth";
 import useNotificaciones from "../hooks/useNotificaciones";
 import ModalPerfil from "../components/modales/ModalPerfil";
@@ -15,7 +15,7 @@ const LayoutProtegido = () => {
   const [mostrarSidebarMovil, setMostrarSidebarMovil] = useState(false);
 
   const { auth, cargando } = useAuth();
-  const { totalNoLeidas } = useNotificaciones(); // ✅ Obtén desde el contexto
+  const { totalNoLeidas } = useNotificaciones();
 
   if (cargando) return "Cargando...";
 
@@ -66,13 +66,12 @@ const LayoutProtegido = () => {
               className={expandido ? "flex-1 mt-8 px-3" : "flex-1 mt-8 px-5"}
             >
               <ul className="space-y-2">
-                {/* NUEVA RUTA: Notificaciones */}
+                {/* Notificaciones */}
                 <li>
                   <NavLink
                     to="/requisiciones/notificaciones"
                     className={SeccionActual}
                   >
-                    {/* Icon + badge */}
                     <div className="relative">
                       <FiBell className="text-xl" />
                       {totalNoLeidas > 0 && (
@@ -87,12 +86,14 @@ const LayoutProtegido = () => {
                     {expandido && <span className="ml-3">Notificaciones</span>}
                   </NavLink>
                 </li>
+                {/* Mis requisiciones */}
                 <li>
                   <NavLink to="/requisiciones" end className={SeccionActual}>
                     <FiFileText className="text-xl" />
                     {expandido && <span className="ml-3">Mis requisiciones</span>}
                   </NavLink>
                 </li>
+                {/* Todas las requisiciones */}
                 {tieneRolAdmin && (
                   <li>
                     <NavLink
@@ -106,6 +107,32 @@ const LayoutProtegido = () => {
                     </NavLink>
                   </li>
                 )}
+                {tieneRolSuperAdmin && (
+                  <li>
+                    <NavLink
+                      to="/requisiciones/categorias"
+                      className={SeccionActual}
+                    >
+                      <FaFolderOpen className="text-xl" />
+                      {expandido && (
+                        <span className="ml-3">Categorías de Gasto</span>
+                      )}
+                    </NavLink>
+                  </li>
+                )}
+                {tieneRolSuperAdmin && (
+                  <li>
+                    <NavLink
+                      to="/requisiciones/historial-gastos"
+                      className={SeccionActual}
+                      onClick={() => setMostrarSidebarMovil(false)}
+                    >
+                      <FiTrendingDown className="text-xl" />
+                      {expandido && <span className="ml-3">Historial de Gastos</span>}
+                    </NavLink>
+                  </li>
+                )}
+                {/* Cuentas de usuarios */}
                 {tieneRolSoloAdmin && (
                   <li>
                     <NavLink to="/requisiciones/registrar" className={SeccionActual}>
@@ -114,6 +141,7 @@ const LayoutProtegido = () => {
                     </NavLink>
                   </li>
                 )}
+                {/* Autorizar requisiciones */}
                 {tieneRolSuperAdmin && (
                   <li>
                     <NavLink
@@ -148,7 +176,6 @@ const LayoutProtegido = () => {
                     <div className="text-sm text-white/80">{auth.area}</div>
                   </div>
                 </div>
-                {/* Botón para contraer el menú */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -188,18 +215,7 @@ const LayoutProtegido = () => {
               {/* Navegación */}
               <nav className="flex-1 mt-4 px-3">
                 <ul className="space-y-2">
-                  <li>
-                    <NavLink
-                      to="/requisiciones"
-                      end
-                      className={SeccionActual}
-                      onClick={() => setMostrarSidebarMovil(false)}
-                    >
-                      <FiFileText className="text-xl" />
-                      <span className="ml-3">Mis requisiciones</span>
-                    </NavLink>
-                  </li>
-                  {/* NUEVA RUTA MÓVIL: Notificaciones */}
+                  {/* Notificaciones */}
                   <li>
                     <NavLink
                       to="/requisiciones/notificaciones"
@@ -217,6 +233,19 @@ const LayoutProtegido = () => {
                       <span className="ml-3">Notificaciones</span>
                     </NavLink>
                   </li>
+                  {/* Mis requisiciones */}
+                  <li>
+                    <NavLink
+                      to="/requisiciones"
+                      end
+                      className={SeccionActual}
+                      onClick={() => setMostrarSidebarMovil(false)}
+                    >
+                      <FiFileText className="text-xl" />
+                      <span className="ml-3">Mis requisiciones</span>
+                    </NavLink>
+                  </li>
+                  {/* Todas las requisiciones */}
                   {tieneRolAdmin && (
                     <li>
                       <NavLink
@@ -229,6 +258,32 @@ const LayoutProtegido = () => {
                       </NavLink>
                     </li>
                   )}
+                  {/* Categorías - NUEVO */}
+                  {tieneRolAdmin && (
+                    <li>
+                      <NavLink
+                        to="/requisiciones/categorias"
+                        className={SeccionActual}
+                        onClick={() => setMostrarSidebarMovil(false)}
+                      >
+                        <FaFolderOpen className="text-xl" />
+                        <span className="ml-3">Categorías de Gasto</span>
+                      </NavLink>
+                    </li>
+                  )}
+                  {tieneRolSuperAdmin && (
+                    <li>
+                      <NavLink
+                        to="/requisiciones/historial-gastos"
+                        className={SeccionActual}
+                        onClick={() => setMostrarSidebarMovil(false)}
+                      >
+                        <FiTrendingDown className="text-xl" />
+                        {expandido && <span className="ml-3">Historial de Gastos</span>}
+                      </NavLink>
+                    </li>
+                  )}
+                  {/* Cuentas de usuarios */}
                   {tieneRolSoloAdmin && (
                     <li>
                       <NavLink
@@ -241,6 +296,7 @@ const LayoutProtegido = () => {
                       </NavLink>
                     </li>
                   )}
+                  {/* Autorizar requisiciones */}
                   {tieneRolSuperAdmin && (
                     <li>
                       <NavLink
