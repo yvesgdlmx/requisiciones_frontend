@@ -77,6 +77,7 @@ const formatearSoloFecha = (fecha) => {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
+    timeZone: "UTC"
   });
 };
 
@@ -85,5 +86,6 @@ const formatearSoloHora = (fecha) => {
   return new Date(fecha).toLocaleTimeString('es-MX', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: "UTC"
   });
 };
