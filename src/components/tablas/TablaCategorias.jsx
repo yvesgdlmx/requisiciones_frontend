@@ -13,18 +13,24 @@ const TablaCategorias = ({
 
   const formatearFecha = (fecha) => {
     if (!fecha) return "Sin fecha";
-    return new Date(fecha).toLocaleDateString("es-MX", {
+    const date = new Date(fecha);
+    // Usar UTC para evitar conversión de zona horaria
+    return date.toLocaleDateString("es-MX", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
+      timeZone: "UTC"
     });
   };
 
   const formatearHora = (fecha) => {
     if (!fecha) return "";
-    return new Date(fecha).toLocaleTimeString("es-MX", {
+    const date = new Date(fecha);
+    // Usar UTC para evitar conversión de zona horaria
+    return date.toLocaleTimeString("es-MX", {
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "UTC"
     });
   };
 
