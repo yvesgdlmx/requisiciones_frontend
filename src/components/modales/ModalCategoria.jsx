@@ -128,10 +128,17 @@ const ModalCategoria = ({
       nombre: nombre.trim().toLowerCase(),
       cantidad: parseFloat(cantidad),
       diasPeriodo: Number(diasPeriodo),
-      fechaInicio: fechaInicio + 'T12:00:00.000Z',
+      fechaInicio: fechaInicio + ' 00:00:00',
       // CAMBIO: incluir moneda en el payload
       moneda,
     };
+
+    // DEBUG: Ver qué se está enviando
+    console.log("=== DEBUG FRONTEND ===");
+    console.log("Fecha input (fechaInicio):", fechaInicio);
+    console.log("Fecha a enviar:", datosCategoria.fechaInicio);
+    console.log("Datos completos:", datosCategoria);
+    console.log("=====================");
 
     try {
       await onSubmit(datosCategoria);
