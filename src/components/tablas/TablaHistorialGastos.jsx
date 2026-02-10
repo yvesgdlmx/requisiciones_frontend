@@ -10,6 +10,7 @@ const TablaHistorialGastos = ({ historial }) => {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
+      timeZone: "UTC"
     });
   };
 
@@ -18,6 +19,7 @@ const TablaHistorialGastos = ({ historial }) => {
     return new Date(fecha).toLocaleTimeString("es-MX", {
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "UTC"
     });
   };
 

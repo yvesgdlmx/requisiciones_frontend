@@ -663,7 +663,7 @@ const ModalAdminDetalleRequisicion = ({
                     <p>
                       <strong>Período:</strong> {presupuestoInfo.diasPeriodo || 0} días
                       <span className="ml-2">
-                        ({new Date(presupuestoInfo.fechaInicio).toLocaleString('es-MX', {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})} - {new Date(presupuestoInfo.fechaFin).toLocaleString('es-MX', {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})})
+                        ({new Date(presupuestoInfo.fechaInicio).toLocaleString('es-MX', {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'UTC'})} - {new Date(presupuestoInfo.fechaFin).toLocaleString('es-MX', {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'UTC'})})
                       </span>
                     </p>
                   </div>
