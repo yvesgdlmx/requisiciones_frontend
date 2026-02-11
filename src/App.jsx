@@ -115,7 +115,7 @@ function App() {
               <Route
                 path="historial-gastos"
                 element={
-                  <RoleProtectedRoute allowedRoles={["superadmin"]}>
+                  <RoleProtectedRoute allowedRoles={["admin", "superadmin"]}>
                     <HistorialGastosProvider>
                       <HistorialGastos/>
                     </HistorialGastosProvider>

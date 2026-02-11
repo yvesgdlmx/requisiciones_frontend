@@ -120,7 +120,7 @@ const LayoutProtegido = () => {
                     </NavLink>
                   </li>
                 )}
-                {tieneRolSuperAdmin && (
+                {tieneRolAdmin && (
                   <li>
                     <NavLink
                       to="/requisiciones/historial-gastos"
@@ -271,7 +271,7 @@ const LayoutProtegido = () => {
                       </NavLink>
                     </li>
                   )}
-                  {tieneRolSuperAdmin && (
+                  {tieneRolAdmin && (
                     <li>
                       <NavLink
                         to="/requisiciones/historial-gastos"
@@ -279,7 +279,7 @@ const LayoutProtegido = () => {
                         onClick={() => setMostrarSidebarMovil(false)}
                       >
                         <FiTrendingDown className="text-xl" />
-                        {expandido && <span className="ml-3">Historial de Gastos</span>}
+                        <span className="ml-3">Historial de Gastos</span>
                       </NavLink>
                     </li>
                   )}
