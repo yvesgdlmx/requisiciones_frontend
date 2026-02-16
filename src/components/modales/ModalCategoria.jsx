@@ -128,7 +128,7 @@ const ModalCategoria = ({
       nombre: nombre.trim().toLowerCase(),
       cantidad: parseFloat(cantidad),
       diasPeriodo: Number(diasPeriodo),
-      fechaInicio: fechaInicio + ' 00:00:00',
+      fechaInicio,
       // CAMBIO: incluir moneda en el payload
       moneda,
     };
