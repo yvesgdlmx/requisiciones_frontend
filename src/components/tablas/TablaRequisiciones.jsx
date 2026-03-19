@@ -114,6 +114,10 @@ const TablaRequisiciones = ({
         return "bg-cyan-200 text-cyan-800";
       case "rechazada":
         return "bg-red-400 text-red-800";
+      case "proceso de pago":
+        return "bg-pink-200 text-pink-800";
+      case "proveedor preparando envío":
+        return "bg-indigo-200 text-indigo-800";
       case "liberacion aduanal":
         return "bg-purple-200 text-purple-800";
       case "proceso de entrega":

@@ -23,33 +23,19 @@ export const MisRequisicionesProvider = ({ children }) => {
   const [busqueda, setBusqueda] = useState("");
   const itemsPorPagina = 10;
 
-  // Detalles para el resumen por status
-  const detallesDeStatus = [
+   // Detalles para el resumen por status
+   const detallesDeStatus = [
     { status: "creada", color: "bg-gray-200", textColor: "text-gray-800" },
     { status: "rechazada", color: "bg-red-400", textColor: "text-red-800" },
     { status: "cotizando", color: "bg-blue-200", textColor: "text-blue-800" },
     { status: "aprobada", color: "bg-green-400", textColor: "text-green-800" },
-    {
-      status: "esperando autorizacion",
-      color: "bg-yellow-200",
-      textColor: "text-yellow-800",
-    },
+    { status: "esperando autorizacion", color: "bg-yellow-200", textColor: "text-yellow-800" },
     { status: "autorizada", color: "bg-cyan-200", textColor: "text-cyan-800" },
-    {
-      status: "liberacion aduanal",
-      color: "bg-purple-200",
-      textColor: "text-purple-800",
-    },
-    {
-      status: "proceso de entrega",
-      color: "bg-orange-200",
-      textColor: "text-orange-800",
-    },
-    {
-      status: "entregada parcial",
-      color: "bg-teal-200",
-      textColor: "text-teal-800",
-    },
+    { status: "proceso de pago", color: "bg-pink-200", textColor: "text-pink-800" },
+    { status: "proveedor preparando envío", color: "bg-indigo-200", textColor: "text-indigo-800" },
+    { status: "liberacion aduanal", color: "bg-purple-200", textColor: "text-purple-800" },
+    { status: "proceso de entrega", color: "bg-orange-200", textColor: "text-orange-800" },
+    { status: "entregada parcial", color: "bg-teal-200", textColor: "text-teal-800" },
     { status: "concluida", color: "bg-green-200", textColor: "text-green-800" },
     { status: "cancelada", color: "bg-red-200", textColor: "text-red-800" },
   ];

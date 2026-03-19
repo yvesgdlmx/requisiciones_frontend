@@ -51,6 +51,8 @@ const ModalAdminDetalleRequisicion = ({
     "aprobada",
     "esperando autorizacion",
     "autorizada",
+    'proceso de pago',
+    'proveedor preparando envío',
     "liberacion aduanal",
     "proceso de entrega",
     "entregada parcial",
