@@ -109,11 +109,11 @@ export const MisRequisicionesProvider = ({ children }) => {
 
   // Filtrar datos según la búsqueda y la opción seleccionada
   const datosFiltrados = datos.filter((item) =>
-    item[opcionSeleccionada.value]
-      .toString()
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
-  );
+  (item[opcionSeleccionada.value] || "")
+    .toString()
+    .toLowerCase()
+    .includes(busqueda.toLowerCase())
+);
 
   // Agrupar por status para el resumen
   const agrupacionStatus = datosFiltrados.reduce((acc, item) => {

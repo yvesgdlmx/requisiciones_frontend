@@ -90,11 +90,11 @@ export const TodasRequisicionesProvider = ({ children }) => {
   const handleInputChange = (e) => setBusqueda(e.target.value);
   
   const datosFiltrados = datos.filter((item) =>
-    item[opcionSeleccionada.value]
-      .toString()
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
-  );
+  (item[opcionSeleccionada.value] || "")
+    .toString()
+    .toLowerCase()
+    .includes(busqueda.toLowerCase())
+);
   
   // Agrupar por status para el resumen
   const agrupacionStatus = datosFiltrados.reduce((acc, item) => {
