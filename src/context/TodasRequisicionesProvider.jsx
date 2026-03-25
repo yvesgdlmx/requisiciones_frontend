@@ -13,6 +13,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
     { value: "folio", label: "Folio" },
     { value: "fecha", label: "Fecha" },
     { value: "solicitante", label: "Solicitante" },
+    { value: "comprador", label: "Comprador" },
     { value: "status", label: "Status" },
   ];
   const [opcionSeleccionada, setOpcionSeleccionada] = useState(opciones[0]);
