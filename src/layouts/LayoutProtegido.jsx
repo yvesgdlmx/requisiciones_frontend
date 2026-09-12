@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, Navigate } from "react-router-dom";
-import { FiFileText, FiCheckCircle, FiList, FiBell, FiTrendingDown } from "react-icons/fi";
+import { FiFileText, FiCheckCircle, FiList, FiBell, FiTrendingDown, FiActivity, FiDownload } from "react-icons/fi";
 import { RiMenuFoldLine, RiMenuUnfoldLine } from "react-icons/ri";
 import { FaUserCircle, FaFolderOpen } from "react-icons/fa";
 import useAuth from "../hooks/useAuth";
@@ -131,6 +131,28 @@ const LayoutProtegido = () => {
                       {expandido && <span className="ml-3">Historial de Gastos</span>}
                     </NavLink>
                   </li>
+                )}
+                {tieneRolAdmin && (
+                <li>
+                    <NavLink
+                    to="/requisiciones/historial-status"
+                    className={SeccionActual}
+                    >
+                    <FiActivity className="text-xl" />
+                    {expandido && <span className="ml-3">Historial de Movimientos</span>}
+                    </NavLink>
+                </li>
+                )}
+                {tieneRolAdmin && (
+                <li>
+                    <NavLink
+                    to="/requisiciones/exportar-requisiciones"
+                    className={SeccionActual}
+                    >
+                    <FiDownload className="text-xl" />
+                    {expandido && <span className="ml-3">Exportar requisiciones</span>}
+                    </NavLink>
+                </li>
                 )}
                 {/* Cuentas de usuarios */}
                 {tieneRolSoloAdmin && (
@@ -283,6 +305,30 @@ const LayoutProtegido = () => {
                       </NavLink>
                     </li>
                   )}
+                  {tieneRolAdmin && (
+                    <li>
+                        <NavLink
+                        to="/requisiciones/historial-status"
+                        className={SeccionActual}
+                        onClick={() => setMostrarSidebarMovil(false)}
+                        >
+                        <FiActivity className="text-xl" />
+                        <span className="ml-3">Historial de Movimientos</span>
+                        </NavLink>
+                    </li>
+                    )}
+                  {tieneRolAdmin && (
+                    <li>
+                        <NavLink
+                        to="/requisiciones/exportar-requisiciones"
+                        className={SeccionActual}
+                        onClick={() => setMostrarSidebarMovil(false)}
+                        >
+                        <FiDownload className="text-xl" />
+                        <span className="ml-3">Exportar requisiciones</span>
+                        </NavLink>
+                    </li>
+                    )}
                   {/* Cuentas de usuarios */}
                   {tieneRolSoloAdmin && (
                     <li>

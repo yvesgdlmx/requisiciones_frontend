@@ -146,6 +146,23 @@ const RequisicionPDF = ({ requisicion }) => (
         )}
       </View>
 
+      {/* Datos de compra */}
+      <Text style={styles.sectionTitle}>Datos de compra</Text>
+      <View style={styles.table}>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableHeader}>Proveedor</Text>
+          <Text style={styles.tableHeader}>Tipo de compra</Text>
+          <Text style={styles.tableHeader}>Monto</Text>
+          <Text style={styles.tableHeader}>ETA</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableCell}>{requisicion.proveedor || "-"}</Text>
+          <Text style={styles.tableCell}>{requisicion.tipoCompra || "-"}</Text>
+          <Text style={styles.tableCell}>{requisicion.monto || "-"}</Text>
+          <Text style={styles.tableCell}>{requisicion.eta || "-"}</Text>
+        </View>
+      </View>
+
       {/* Comentarios */}
       <Text style={styles.sectionTitle}>Comentario (comprador)</Text>
       <View style={styles.commentBox}>

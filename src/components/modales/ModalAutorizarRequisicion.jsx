@@ -13,13 +13,24 @@ const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
 Modal.setAppElement("#root");
 
 // Helpers para archivos
-const normalizePath = (filePath) =>
-  typeof filePath === "string" ? filePath.replace(/\\/g, "/") : "";
-const isImage = (filePath) => /\.(jpg|jpeg|png)$/i.test(filePath);
-const isPDF = (filePath) => /\.pdf$/i.test(filePath);
+const getArchivoPath = (archivo) =>
+  typeof archivo === "string"
+    ? archivo
+    : archivo?.url || archivo?.original_name || archivo?.name || "";
+const isImage = (archivo) =>
+  archivo?.resource_type === "image" ||
+  archivo?.mimetype?.startsWith("image/") ||
+  archivo?.type?.startsWith("image/") ||
+  /\.(jpg|jpeg|png)($|\?)/i.test(getArchivoPath(archivo));
+const isPDF = (archivo) =>
+  archivo?.resource_type === "raw" ||
+  archivo?.mimetype === "application/pdf" ||
+  archivo?.type === "application/pdf" ||
+  archivo?.format === "pdf" ||
+  /\.pdf($|\?)/i.test(getArchivoPath(archivo));
 
 const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) => {
-  const [updatedStatus, setUpdatedStatus] = useState("");
+  const [, setUpdatedStatus] = useState("");
   const [comentarioAutorizador, setComentarioAutorizador] = useState("");
 
   useEffect(() => {
@@ -221,13 +232,7 @@ const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) =
           <h3 className="text-lg font-semibold text-gray-600 mb-2">
             Datos de la Orden de Compra
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-            <div>
-              <span className="block text-gray-500 text-sm">N° Orden de Compra</span>
-              <span className="text-gray-700 text-base font-medium">
-                {requisicion?.numeroOrdenCompra || <span className="italic text-gray-400">No asignado</span>}
-              </span>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <span className="block text-gray-500 text-sm">Proveedor</span>
               <span className="text-gray-700 text-base font-medium">
@@ -353,13 +358,13 @@ const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) =
                     className="border border-gray-200 rounded-lg shadow-sm overflow-hidden cursor-pointer transform hover:scale-105 transition flex flex-col"
                   >
                     <div className="flex-1">
-                      {isImage(urlCompleta) ? (
+                      {isImage(archivo) ? (
                         <img
                           src={urlCompleta}
                           alt={`Documento ${index}`}
                           className="object-cover w-full h-24 sm:h-32 pointer-events-none"
                         />
-                      ) : isPDF(urlCompleta) ? (
+                      ) : isPDF(archivo) ? (
                         <div className="w-full h-24 sm:h-32 overflow-hidden pointer-events-none">
                           <object
                             data={urlCompleta}
@@ -376,12 +381,12 @@ const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) =
                       )}
                     </div>
                     <div className="flex items-center justify-center p-2 border-t border-gray-200 pointer-events-none">
-                      {isImage(urlCompleta) ? (
+                      {isImage(archivo) ? (
                         <>
                           <AiFillFileImage className="text-green-500 text-xl mr-1" />
                           <span className="text-sm">Imagen</span>
                         </>
-                      ) : isPDF(urlCompleta) ? (
+                      ) : isPDF(archivo) ? (
                         <>
                           <AiOutlineFilePdf className="text-red-500 text-xl mr-1" />
                           <span className="text-sm">PDF</span>

@@ -2,6 +2,14 @@ import React, { createContext, useState, useRef } from "react";
 import clienteAxios from "../config/clienteAxios";
 import Swal from "sweetalert2";
 const CrearRequisicionContext = createContext();
+
+const allowedMimeTypes = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "application/pdf",
+];
+
 export const CrearRequisicionProvider = ({ children }) => {
   // Estado inicial: solo datos de cabecera; los datos del artículo se gestionan en un array.
   const initialFormState = {
@@ -22,6 +30,28 @@ export const CrearRequisicionProvider = ({ children }) => {
   // Funciones para manejar la subida de archivos.
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
+    const invalidFile = files.find((file) => !allowedMimeTypes.includes(file.type));
+
+    if (invalidFile) {
+      Swal.fire({
+        icon: "warning",
+        title: "Archivo no permitido",
+        text: "Solo puedes subir archivos JPEG, JPG, PNG o PDF.",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    if (formData.archivos.length + files.length > 5) {
+      Swal.fire({
+        icon: "warning",
+        title: "Maximo 5 archivos",
+        text: "Puedes adjuntar hasta 5 documentos por requisicion.",
+      });
+      e.target.value = "";
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       archivos: [...prev.archivos, ...files],

@@ -11,11 +11,32 @@ const LoadingSpinner = () => (
   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
 );
 
-const renderArchivo = (file, index, removerArchivoExistente, isLoading) => {
-  const fileUrl = typeof file === "string" ? file : file.url;
-  const extension = fileUrl.split(".").pop().toLowerCase();
+const allowedMimeTypes = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "application/pdf",
+];
 
-  if (extension === "pdf") {
+const getArchivoPath = (file) =>
+  typeof file === "string" ? file : file?.url || file?.original_name || file?.name || "";
+
+const isPDF = (file) =>
+  file?.resource_type === "raw" ||
+  file?.mimetype === "application/pdf" ||
+  file?.type === "application/pdf" ||
+  file?.format === "pdf" ||
+  /\.pdf($|\?)/i.test(getArchivoPath(file));
+
+const renderArchivo = (file, index, removerArchivoExistente, isLoading) => {
+  const rawFileUrl = typeof file === "string" ? file : file.url;
+  const normalizedPath =
+    typeof rawFileUrl === "string" ? rawFileUrl.replace(/\\/g, "/") : "";
+  const fileUrl = normalizedPath.startsWith("http")
+    ? normalizedPath
+    : `${baseUrl}/${normalizedPath}`;
+
+  if (isPDF(file)) {
     return (
       <div
         key={index}
@@ -146,6 +167,28 @@ const ModalEditarRequisicion = ({ isOpen, onClose, requisicion }) => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
+    const invalidFile = files.find((file) => !allowedMimeTypes.includes(file.type));
+
+    if (invalidFile) {
+      Swal.fire({
+        icon: "warning",
+        title: "Archivo no permitido",
+        text: "Solo puedes subir archivos JPEG, JPG, PNG o PDF.",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    if (preservedFiles.length + formData.archivos.length + files.length > 5) {
+      Swal.fire({
+        icon: "warning",
+        title: "Maximo 5 archivos",
+        text: "Puedes adjuntar hasta 5 documentos por requisicion.",
+      });
+      e.target.value = "";
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       archivos: [...prev.archivos, ...files],

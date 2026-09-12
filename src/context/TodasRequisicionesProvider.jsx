@@ -7,7 +7,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
   // Estados principales
   const [datos, setDatos] = useState([]);
   const [error, setError] = useState(null);
-  
+
   // Opciones para la búsqueda
   const opciones = [
     { value: "folio", label: "Folio" },
@@ -19,16 +19,16 @@ export const TodasRequisicionesProvider = ({ children }) => {
   const [opcionSeleccionada, setOpcionSeleccionada] = useState(opciones[0]);
   const [busqueda, setBusqueda] = useState("");
   const itemsPorPagina = 10;
-  
+
   // Estados para el modal de detalle
   const [modalDetalleActivo, setModalDetalleActivo] = useState(false);
   const [requisicionSeleccionada, setRequisicionSeleccionada] = useState(null);
-  
+
   // Función para transformar la requisición y generar campos derivados
   const transformarRequisicion = (item, preservarSolicitante = false) => {
     const fechaObj = new Date(item.fechaHora);
     const fechaCambioStatusObj = item.fechaCambioStatus ? new Date(item.fechaCambioStatus) : fechaObj;
-    
+
     let solicitante = "";
     if (item.usuario) {
       const primerNombre = item.usuario.nombre ? item.usuario.nombre.split(" ")[0] : "";
@@ -38,7 +38,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
       // Si no hay usuario pero queremos preservar el solicitante existente
       solicitante = item.solicitante;
     }
-    
+
     return {
       ...item,
       fecha: fechaObj.toLocaleDateString("es-ES"),
@@ -54,7 +54,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
       articulos: Array.isArray(item.articulos) ? item.articulos : []
     };
   };
-  
+
   // Función para obtener las requisiciones
   const obtenerRequisiciones = async () => {
     try {
@@ -80,34 +80,34 @@ export const TodasRequisicionesProvider = ({ children }) => {
       setError("Error al obtener requisiciones");
     }
   };
-  
+
   useEffect(() => {
     obtenerRequisiciones();
   }, []);
-  
+
   // Manejo de búsqueda y filtrado
   const handleSelectChange = (opcion) => setOpcionSeleccionada(opcion);
   const handleInputChange = (e) => setBusqueda(e.target.value);
-  
+
   const datosFiltrados = datos.filter((item) =>
   (item[opcionSeleccionada.value] || "")
     .toString()
     .toLowerCase()
     .includes(busqueda.toLowerCase())
 );
-  
+
   // Agrupar por status para el resumen
   const agrupacionStatus = datosFiltrados.reduce((acc, item) => {
     acc[item.status] = (acc[item.status] || 0) + 1;
     return acc;
   }, {});
-  
+
   // Detalles de status para mostrar en el resumen
   const detallesDeStatus = [
     { status: "creada", color: "bg-gray-200", textColor: "text-gray-800" },
     { status: "rechazada", color: "bg-red-400", textColor: "text-red-800" },
-    { status: "cotizando", color: "bg-blue-200", textColor: "text-blue-800" },
     { status: "aprobada", color: "bg-green-400", textColor: "text-green-800" },
+    { status: "cotizando", color: "bg-blue-200", textColor: "text-blue-800" },
     { status: "esperando autorizacion", color: "bg-yellow-200", textColor: "text-yellow-800" },
     { status: "autorizada", color: "bg-cyan-200", textColor: "text-cyan-800" },
     { status: "proceso de pago", color: "bg-pink-200", textColor: "text-pink-800" },
@@ -118,17 +118,17 @@ export const TodasRequisicionesProvider = ({ children }) => {
     { status: "concluida", color: "bg-green-200", textColor: "text-green-800" },
     { status: "cancelada", color: "bg-red-200", textColor: "text-red-800" },
   ];
-  
+
   // Función para abrir el modal de detalle y actualizar el campo "abierto" si es necesario
   const handleRowClick = async (requisicion) => {
     try {
       const token = localStorage.getItem("token");
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      
+
       // 1. Obtener la requisición actualizada desde el backend
       const response = await clienteAxios.get(`/requisiciones/${requisicion.id}`, config);
       const requisicionDelBackend = response.data.requisicion;
-      
+
       // Combinar datos del backend con datos locales para preservar información
       const requisicionCombinada = {
         ...requisicionDelBackend,
@@ -136,7 +136,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
         solicitante: requisicionDelBackend.solicitante || requisicion.solicitante,
         usuario: requisicionDelBackend.usuario || requisicion.usuario,
       };
-      
+
       const requisicionActualizada = transformarRequisicion(requisicionCombinada, true);
 
       // 2. Si no está abierta, marcarla como vista
@@ -147,7 +147,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
           config
         );
         requisicionActualizada.abierto = true;
-        
+
         // Actualizar en el estado con los datos combinados
         const requisicionParaActualizar = {
           ...putResponse.data.requisicion,
@@ -164,7 +164,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
       setError("Error al obtener la requisición");
     }
   };
-  
+
   // Función para actualizar una requisición en el estado (después de un PUT, por ejemplo)
   const actualizarRequisicion = (requisicionActualizada) => {
     setDatos((prevDatos) =>
@@ -185,7 +185,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
       })
     );
   };
-  
+
   return (
     <TodasRequisicionesContext.Provider
       value={{

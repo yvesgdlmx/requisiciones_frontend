@@ -15,6 +15,8 @@ import { CrearRequisicionProvider } from "./context/CrearRequisicionProvider";
 import { NotificacionesProvider } from "./context/NotificacionesProvider";
 import { CategoriasProvider } from "./context/CategoriasProvider";
 import { HistorialGastosProvider } from "./context/HistorialGastosProvider";
+import { HistorialStatusProvider } from "./context/HistorialStatusProvider";
+import { ExportarRequisicionesProvider } from "./context/ExportarRequisicionesProvider";
 
 // Carga perezosa de los layouts y páginas
 const LayoutProtegido = lazy(() => import("./layouts/LayoutProtegido"));
@@ -38,6 +40,12 @@ const ListadoCategorias = lazy(() =>
 const HistorialGastos = lazy(() =>
   import("./pages/categorias/HistorialGastos")
 );
+const HistorialStatus = lazy(() =>
+  import("./pages/requisiciones/HistorialStatus")
+);
+const ExportarRequisiciones = lazy(() =>
+    import("./pages/requisiciones/ExportarRequisiciones")
+)
 
 function App() {
   return (
@@ -48,9 +56,9 @@ function App() {
             <Route path="/" element={<AuthLayout />}>
               <Route index element={<Login />} />
             </Route>
-            {/* ✅ ENVUELVE LayoutProtegido con NotificacionesProvider */}
-            <Route 
-              path="/requisiciones" 
+
+            <Route
+              path="/requisiciones"
               element={
                 <NotificacionesProvider>
                   <LayoutProtegido />
@@ -67,6 +75,7 @@ function App() {
                   </MisRequisicionesProvider>
                 }
               />
+
               <Route
                 path="todas-requisiciones"
                 element={
@@ -79,6 +88,7 @@ function App() {
                   </RoleProtectedRoute>
                 }
               />
+
               <Route
                 path="en-autorizacion"
                 element={
@@ -89,11 +99,9 @@ function App() {
                   </RoleProtectedRoute>
                 }
               />
-              {/* ✅ QUITA NotificacionesProvider de aquí ya que está arriba */}
-              <Route
-                path="notificaciones"
-                element={<Notificaciones />}
-              />
+
+              <Route path="notificaciones" element={<Notificaciones />} />
+
               <Route
                 path="registrar"
                 element={
@@ -102,6 +110,7 @@ function App() {
                   </RoleProtectedRoute>
                 }
               />
+
               <Route
                 path="categorias"
                 element={
@@ -112,17 +121,41 @@ function App() {
                   </RoleProtectedRoute>
                 }
               />
+
               <Route
                 path="historial-gastos"
                 element={
                   <RoleProtectedRoute allowedRoles={["admin", "superadmin"]}>
                     <HistorialGastosProvider>
-                      <HistorialGastos/>
+                      <HistorialGastos />
                     </HistorialGastosProvider>
                   </RoleProtectedRoute>
                 }
               />
+
+              <Route
+                path="historial-status"
+                element={
+                  <RoleProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                    <HistorialStatusProvider>
+                      <HistorialStatus />
+                    </HistorialStatusProvider>
+                  </RoleProtectedRoute>
+                }
+              />
+
+              <Route
+                path="exportar-requisiciones"
+                element={
+                    <RoleProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                    <ExportarRequisicionesProvider>
+                        <ExportarRequisiciones />
+                    </ExportarRequisicionesProvider>
+                    </RoleProtectedRoute>
+                }
+              />
             </Route>
+
             <Route path="*" element={<Navigate to="/requisiciones" />} />
           </Routes>
         </Suspense>
