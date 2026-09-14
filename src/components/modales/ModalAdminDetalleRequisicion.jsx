@@ -435,16 +435,15 @@ const ModalAdminDetalleRequisicion = ({
     data.append("comentario", comentario);
     data.append("proveedor", proveedor);
     data.append("tipoCompra", tipoCompra === "" ? null : tipoCompra);
+    data.append("numeroOrdenCompra", numeroOrdenCompra);
     if (tipoCompra === "internacional") {
       data.append("cotizacion", cotizacion);
       data.append("numeroGuia", numeroGuia);
-      data.append("numeroOrdenCompra", numeroOrdenCompra);
       data.append("numeroOrdenVenta", numeroOrdenVenta);
       data.append("factura", factura);
     } else {
       data.append("cotizacion", "");
       data.append("numeroGuia", "");
-      data.append("numeroOrdenCompra", "");
       data.append("numeroOrdenVenta", "");
       data.append("factura", "");
     }
@@ -693,7 +692,6 @@ const ModalAdminDetalleRequisicion = ({
                 Datos de la Orden de Compra
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {tipoCompra === "internacional" && (
                 <div>
                   <label className="block text-gray-500 text-sm mb-1">
                     N° Orden de Compra
@@ -706,7 +704,6 @@ const ModalAdminDetalleRequisicion = ({
                     placeholder="No asignado"
                   />
                 </div>
-                )}
                 <div>
                   <label className="block text-gray-500 text-sm mb-1">
                     Proveedor
