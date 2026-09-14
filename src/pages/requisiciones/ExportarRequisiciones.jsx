@@ -16,6 +16,9 @@ const ExportarRequisiciones = () => {
     setFechaFin,
     folio,
     setFolio,
+    statusFiltro,
+    setStatusFiltro,
+    statusDisponibles,
     obtenerRequisiciones,
   } = useExportarRequisiciones();
 
@@ -85,13 +88,17 @@ const ExportarRequisiciones = () => {
   ).length;
 
   const getNombreArchivo = () => {
-    if (modoExportacion === "todas") return "requisiciones-todas";
-    if (modoExportacion === "folio") return `requisicion-${folio || "folio"}`;
+    const statusTexto = statusFiltro
+      ? `-${statusFiltro.replaceAll(" ", "-")}`
+      : "";
+
+    if (modoExportacion === "todas") return `requisiciones-todas${statusTexto}`;
+    if (modoExportacion === "folio") return `requisicion-${folio || "folio"}${statusTexto}`;
     if (modoExportacion === "rango") {
-      return `requisiciones-${fechaInicio || "inicio"}-${fechaFin || "fin"}`;
+      return `requisiciones-${fechaInicio || "inicio"}-${fechaFin || "fin"}${statusTexto}`;
     }
 
-    return "requisiciones";
+    return `requisiciones${statusTexto}`;
   };
 
   const handleExportar = () => {
@@ -104,14 +111,20 @@ const ExportarRequisiciones = () => {
   };
 
   const getFiltroAplicado = () => {
-    if (modoExportacion === "todas") return "Todas las requisiciones";
-    if (modoExportacion === "folio") return folio ? `Folio: ${folio}` : "Folio pendiente";
+    const filtroStatus = statusFiltro
+      ? ` | Status: ${capitalizar(statusFiltro)}`
+      : "";
+
+    if (modoExportacion === "todas") return `Todas las requisiciones${filtroStatus}`;
+    if (modoExportacion === "folio") {
+      return folio ? `Folio: ${folio}${filtroStatus}` : `Folio pendiente${filtroStatus}`;
+    }
     if (modoExportacion === "rango") {
-      if (!fechaInicio || !fechaFin) return "Rango pendiente";
-      return `${fechaInicio} a ${fechaFin}`;
+      if (!fechaInicio || !fechaFin) return `Rango pendiente${filtroStatus}`;
+      return `${fechaInicio} a ${fechaFin}${filtroStatus}`;
     }
 
-    return "Sin filtro";
+    return statusFiltro ? `Status: ${capitalizar(statusFiltro)}` : "Sin filtro";
   };
 
   return (
@@ -125,7 +138,7 @@ const ExportarRequisiciones = () => {
       </p>
 
       <div className="bg-white border border-gray-200 rounded-xl shadow-md p-5 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Tipo de descarga
@@ -183,6 +196,24 @@ const ExportarRequisiciones = () => {
               />
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Status
+            </label>
+            <select
+              value={statusFiltro}
+              onChange={(e) => setStatusFiltro(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todos los status</option>
+              {statusDisponibles.map((status) => (
+                <option key={status} value={status}>
+                  {capitalizar(status)}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="flex gap-2">
             <button

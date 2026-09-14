@@ -12,6 +12,7 @@ export const ExportarRequisicionesProvider = ({ children }) => {
     const [fechaInicio, setFechaInicio] = useState("");
     const [fechaFin, setFechaFin] = useState("")
     const [folio, setFolio] = useState("")
+    const [statusFiltro, setStatusFiltro] = useState("");
 
     const obtenerRequisiciones = async () => {
         try {
@@ -39,8 +40,10 @@ export const ExportarRequisicionesProvider = ({ children }) => {
     }
 
     const requisicionesFiltradas = useMemo(() => {
+        let resultado = [];
+
         if (modoExportacion === "todas") {
-            return requisiciones;
+            resultado = requisiciones;
         }
 
         if (modoExportacion === "folio") {
@@ -48,7 +51,7 @@ export const ExportarRequisicionesProvider = ({ children }) => {
 
             if (!texto) return [];
 
-            return requisiciones.filter((req) =>
+            resultado = requisiciones.filter((req) =>
                 (req.folio || "").toLowerCase().includes(texto)
             )
         }
@@ -60,14 +63,28 @@ export const ExportarRequisicionesProvider = ({ children }) => {
             const fin = new Date(`${fechaFin}T23:59:59`);
 
 
-            return requisiciones.filter((req) => {
+            resultado = requisiciones.filter((req) => {
                 const fechaReq = new Date(req.fechaHora);
                 return fechaReq >= inicio && fechaReq <= fin
             });
         }
 
-        return [];
-    }, [requisiciones, modoExportacion, fechaInicio, fechaFin, folio])
+        if (statusFiltro) {
+            resultado = resultado.filter((req) => req.status === statusFiltro);
+        }
+
+        return resultado;
+    }, [requisiciones, modoExportacion, fechaInicio, fechaFin, folio, statusFiltro])
+
+    const statusDisponibles = useMemo(() => {
+        const statusUnicos = new Set(
+            requisiciones
+                .map((req) => req.status)
+                .filter(Boolean)
+        );
+
+        return Array.from(statusUnicos).sort((a, b) => a.localeCompare(b));
+    }, [requisiciones]);
 
     useEffect(() => {
         obtenerRequisiciones();
@@ -88,6 +105,9 @@ export const ExportarRequisicionesProvider = ({ children }) => {
                 setFechaFin,
                 folio,
                 setFolio,
+                statusFiltro,
+                setStatusFiltro,
+                statusDisponibles,
                 obtenerRequisiciones,
             }}
         >
