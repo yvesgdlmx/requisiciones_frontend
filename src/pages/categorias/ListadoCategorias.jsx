@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { FiFolder, FiPlus, FiSearch } from "react-icons/fi";
+import Swal from "sweetalert2";
 import useCategorias from "../../hooks/useCategorias";
 import TablaCategorias from "../../components/tablas/TablaCategorias";
 import ModalCategoria from "../../components/modales/ModalCategoria";
-import Swal from "sweetalert2";
 
 const ListadoCategorias = () => {
   const {
@@ -33,13 +34,13 @@ const ListadoCategorias = () => {
 
   const handleEliminar = async (id, nombre) => {
     const result = await Swal.fire({
-      title: "¿Estás seguro?",
-      text: `Se eliminará la categoría "${nombre}"`,
+      title: "Estas seguro?",
+      text: `Se eliminara la categoria "${nombre}"`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, eliminar",
+      confirmButtonColor: "#2563EB",
+      cancelButtonColor: "#EF4444",
+      confirmButtonText: "Si, eliminar",
       cancelButtonText: "Cancelar",
     });
 
@@ -50,7 +51,7 @@ const ListadoCategorias = () => {
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Categoría eliminada",
+          title: "Categoria eliminada",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
@@ -60,78 +61,87 @@ const ListadoCategorias = () => {
   };
 
   const handleSubmit = async (datosCategoria) => {
-    if (modoEdicion) {
-      const response = await actualizarCategoria(
-        categoriaSeleccionada.id,
-        datosCategoria
-      );
-      if (response.success) {
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: "Categoría actualizada",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-        });
-      }
-    } else {
-      const response = await crearCategoria(datosCategoria);
-      if (response.success) {
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: "Categoría creada",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-        });
-      }
+    const response = modoEdicion
+      ? await actualizarCategoria(categoriaSeleccionada.id, datosCategoria)
+      : await crearCategoria(datosCategoria);
+
+    if (response.success) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: modoEdicion ? "Categoria actualizada" : "Categoria creada",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
     }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header centrado al estilo Registrar */}
-      <h2 className="text-2xl font-bold mb-2 text-gray-500 text-center">Categorías de Gasto</h2>
-      <p className="text-center mb-6 text-gray-500">Visualiza y administra tus categorías de gasto</p>
+    <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8 2xl:max-w-[1600px]">
+      <section className="mb-6 overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-sm">
+        <div className="border-b border-[#E2E8F0] bg-white px-5 py-5 sm:px-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
+                <FiFolder className="h-3.5 w-3.5" />
+                Finanzas
+              </div>
+              <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">
+                Categorias de gasto
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">
+                Visualiza y administra los presupuestos por categoria.
+              </p>
+            </div>
 
-      {/* Buscador y botón agregar */}
-      <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-        <input
-          type="text"
-          placeholder="Buscar categoría..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="w-full md:w-1/5 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-        <button
-          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded transition-colors shadow"
-          onClick={abrirModalCrear}
-        >
-          <span className="text-lg font-bold">+</span> Nueva categoría
-        </button>
-      </div>
-
-      {/* Tabla */}
-      {cargando ? (
-        <div className="text-center py-10">
-          <p className="text-gray-600">Cargando categorías...</p>
+            <button
+              type="button"
+              className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-lg bg-[#2563EB] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3B82F6]"
+              onClick={abrirModalCrear}
+            >
+              <FiPlus className="h-4 w-4" />
+              Nueva categoria
+            </button>
+          </div>
         </div>
-      ) : (
-        <TablaCategorias
-          categorias={categoriasFiltradas}
-          menuAbierto={menuAbierto}
-          toggleMenu={toggleMenu}
-          cerrarMenu={cerrarMenu}
-          onEditar={abrirModalEditar}
-          onEliminar={handleEliminar}
-        />
-      )}
 
-      {/* Modal */}
+        <div className="p-6 sm:p-7">
+          <div className="relative max-w-2xl">
+            <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
+            <input
+              type="text"
+              placeholder="Buscar categoria..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full rounded-lg border border-[#E2E8F0] bg-white px-11 py-3 text-sm text-[#0F172A] shadow-sm outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#DBEAFE]"
+            />
+          </div>
+        </div>
+
+        <div className="border-t border-[#E2E8F0]">
+          {cargando ? (
+            <div className="bg-white p-10 text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#DBEAFE] text-[#2563EB]">
+                <FiFolder className="h-5 w-5" />
+              </div>
+              <p className="font-semibold text-[#334155]">Cargando categorias...</p>
+              <p className="mt-1 text-sm text-[#64748B]">Actualizando presupuestos registrados.</p>
+            </div>
+          ) : (
+            <TablaCategorias
+              categorias={categoriasFiltradas}
+              menuAbierto={menuAbierto}
+              toggleMenu={toggleMenu}
+              cerrarMenu={cerrarMenu}
+              onEditar={abrirModalEditar}
+              onEliminar={handleEliminar}
+            />
+          )}
+        </div>
+      </section>
+
       <ModalCategoria
         isOpen={modalActivo}
         onClose={cerrarModal}
