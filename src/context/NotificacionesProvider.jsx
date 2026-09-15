@@ -1,15 +1,15 @@
-import React, { createContext, useState, useEffect } from "react";
-import clienteAxios from "../config/clienteAxios";
-import Swal from "sweetalert2";
+import React, { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
 import {
   FiBell,
-  FiFileText,
   FiCheckCircle,
+  FiFileText,
   FiMessageSquare,
-  FiShoppingCart
+  FiShoppingCart,
 } from "react-icons/fi";
+import Swal from "sweetalert2";
+import clienteAxios from "../config/clienteAxios";
+import useAuth from "../hooks/useAuth";
 
 const NotificacionesContext = createContext();
 
@@ -37,7 +37,7 @@ export const NotificacionesProvider = ({ children }) => {
       const { data } = await clienteAxios.get("/notificaciones", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       setNotificaciones(data.notificaciones || []);
       setNotificacionesFiltradas(data.notificaciones || []);
       setTotalNoLeidas(Number(data.totalNoLeidas) || 0);
@@ -151,16 +151,16 @@ export const NotificacionesProvider = ({ children }) => {
   const obtenerIcono = (tipo) => {
     switch (tipo) {
       case "requisicion_creada":
-        return <FiFileText className="w-6 h-6 text-blue-500" />;
+        return <FiFileText className="h-6 w-6 text-blue-500" />;
       case "cambio_status":
-        return <FiCheckCircle className="w-6 h-6 text-green-500" />;
+        return <FiCheckCircle className="h-6 w-6 text-green-500" />;
       case "comentario_agregado":
       case "comentario_autorizador":
-        return <FiMessageSquare className="w-6 h-6 text-yellow-500" />;
+        return <FiMessageSquare className="h-6 w-6 text-yellow-500" />;
       case "orden_compra_asignada":
-        return <FiShoppingCart className="w-6 h-6 text-purple-500" />;
+        return <FiShoppingCart className="h-6 w-6 text-purple-500" />;
       default:
-        return <FiBell className="w-6 h-6 text-gray-400" />;
+        return <FiBell className="h-6 w-6 text-gray-400" />;
     }
   };
 

@@ -33,7 +33,7 @@ const HistorialGastos = () => {
                 Historial de gastos
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">
-                Visualiza el historial completo de gastos por categoria.
+                Visualiza el historial completo de gastos por categoría.
               </p>
             </div>
 
@@ -54,7 +54,7 @@ const HistorialGastos = () => {
             <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
-              placeholder="Buscar por categoria o comprador..."
+              placeholder="Buscar por categoría o comprador..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="w-full rounded-lg border border-[#E2E8F0] bg-white px-11 py-3 text-sm text-[#0F172A] shadow-sm outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#DBEAFE]"

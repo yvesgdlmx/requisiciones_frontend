@@ -1,5 +1,5 @@
 import React from "react";
-import { capitalizeWords } from "../helpers/FuncionesHelpers";
+import { formatearStatusRequisicion } from "../helpers/FuncionesHelpers";
 
 const ResumenRequisiciones = ({
   detallesDeStatus,
@@ -43,7 +43,7 @@ const ResumenRequisiciones = ({
                 <span className={`h-3 w-3 rounded-full ${item.color}`} />
                 <div className="min-w-0">
                   <p className="truncate text-xs font-semibold uppercase tracking-wide text-[#64748B]">
-                    {isTotal ? "Total" : capitalizeWords(item.status)}
+                    {isTotal ? "Total" : formatearStatusRequisicion(item.status)}
                   </p>
                   <p className={`mt-1 text-2xl font-semibold ${item.textColor}`}>
                     {total}

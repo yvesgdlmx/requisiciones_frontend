@@ -89,8 +89,8 @@ const TablaUsuariosMobile = ({
 
           <div className="grid gap-3 px-4 py-4 text-sm">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">Area</p>
-              <p className="mt-1 font-semibold text-[#334155]">{usuario.area || "Sin area"}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">Área</p>
+              <p className="mt-1 font-semibold text-[#334155]">{usuario.area || "Sin área"}</p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">Rol</p>

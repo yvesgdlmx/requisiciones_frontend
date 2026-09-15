@@ -1,15 +1,16 @@
 import React from "react";
-import { capitalizeWords } from "../../helpers/FuncionesHelpers";
+import { capitalizeWords, formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
+
 const CardInfoRequisicion = ({
   requisicion,
-  updatedStatus, // valor del status editable
-  statusOptions, // array de opciones de status
-  handleStatusChange // función para cambiar el status
+  updatedStatus,
+  statusOptions,
+  handleStatusChange,
 }) => {
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-4 grid grid-cols-2 gap-4">
+    <div className="mb-4 grid grid-cols-2 gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-md">
       <div>
-        <span className="block font-semibold text-sm text-gray-600">
+        <span className="block text-sm font-semibold text-gray-600">
           Área:
         </span>
         <span className="text-md text-gray-800">
@@ -17,7 +18,7 @@ const CardInfoRequisicion = ({
         </span>
       </div>
       <div>
-        <span className="block font-semibold text-sm text-gray-600">
+        <span className="block text-sm font-semibold text-gray-600">
           Objetivo:
         </span>
         <span className="text-md text-gray-800">
@@ -25,7 +26,7 @@ const CardInfoRequisicion = ({
         </span>
       </div>
       <div>
-        <span className="block font-semibold text-sm text-gray-600">
+        <span className="block text-sm font-semibold text-gray-600">
           Solicitante:
         </span>
         <span className="text-md text-gray-800">
@@ -35,29 +36,29 @@ const CardInfoRequisicion = ({
         </span>
       </div>
       <div>
-        <span className="block font-semibold text-sm text-gray-600">
+        <span className="block text-sm font-semibold text-gray-600">
           Status:
         </span>
         {handleStatusChange ? (
           <select
             value={updatedStatus}
             onChange={handleStatusChange}
-            className="w-full border border-gray-300 rounded px-2 py-1 text-md text-gray-800"
+            className="text-md w-full rounded border border-gray-300 px-2 py-1 text-gray-800"
           >
             {statusOptions.map((status, index) => (
               <option key={index} value={status}>
-                {capitalizeWords(status)}
+                {formatearStatusRequisicion(status)}
               </option>
             ))}
           </select>
         ) : (
           <span className="text-md text-gray-800">
-            {capitalizeWords(requisicion?.status)}
+            {formatearStatusRequisicion(requisicion?.status)}
           </span>
         )}
       </div>
       <div>
-        <span className="block font-semibold text-sm text-gray-600">
+        <span className="block text-sm font-semibold text-gray-600">
           Prioridad:
         </span>
         <span className="text-md text-gray-800">
@@ -67,4 +68,5 @@ const CardInfoRequisicion = ({
     </div>
   );
 };
+
 export default CardInfoRequisicion;

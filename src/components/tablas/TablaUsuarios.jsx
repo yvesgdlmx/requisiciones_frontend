@@ -61,7 +61,7 @@ const TablaUsuarios = ({
             <tr>
               <th className="px-6 py-4 text-left font-semibold">Usuario</th>
               <th className="px-6 py-4 text-left font-semibold">Email</th>
-              <th className="px-6 py-4 text-left font-semibold">Area</th>
+              <th className="px-6 py-4 text-left font-semibold">Área</th>
               <th className="px-6 py-4 text-left font-semibold">Rol</th>
               <th className="px-6 py-4 text-right font-semibold">Acciones</th>
             </tr>
@@ -93,7 +93,7 @@ const TablaUsuarios = ({
                   </td>
 
                   <td className="px-6 py-5 font-medium text-[#334155]">
-                    {area || "Sin area"}
+                    {area || "Sin área"}
                   </td>
 
                   <td className="px-6 py-5">
@@ -158,7 +158,7 @@ const TablaUsuarios = ({
                     No hay usuarios registrados.
                   </p>
                   <p className="mt-1 text-sm text-[#64748B]">
-                    Ajusta la busqueda o agrega un nuevo usuario.
+                    Ajusta la búsqueda o agrega un nuevo usuario.
                   </p>
                 </td>
               </tr>

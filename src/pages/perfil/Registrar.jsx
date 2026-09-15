@@ -135,13 +135,13 @@ const Registrar = () => {
       const token = localStorage.getItem("token");
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const confirm = await Swal.fire({
-        title: "Estas seguro?",
-        text: "Esta accion no se puede deshacer.",
+        title: "¿Estás seguro?",
+        text: "Esta acción no se puede deshacer.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#2563EB",
         cancelButtonColor: "#EF4444",
-        confirmButtonText: "Si, eliminar",
+        confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar",
       });
 
@@ -171,13 +171,13 @@ const Registrar = () => {
             <div>
               <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
                 <FiUsers className="h-3.5 w-3.5" />
-                Administracion
+                Administración
               </div>
               <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">
                 Cuentas de usuarios
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">
-                Visualiza y administra la informacion de tus usuarios.
+                Visualiza y administra la información de tus usuarios.
               </p>
             </div>
 
@@ -201,7 +201,7 @@ const Registrar = () => {
             <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
-              placeholder="Buscar por nombre, email, area o rol..."
+              placeholder="Buscar por nombre, email, área o rol..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="w-full rounded-lg border border-[#E2E8F0] bg-white px-11 py-3 text-sm text-[#0F172A] shadow-sm outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#DBEAFE]"

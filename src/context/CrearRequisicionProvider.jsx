@@ -46,7 +46,7 @@ export const CrearRequisicionProvider = ({ children }) => {
       Swal.fire({
         icon: "warning",
         title: "Maximo 5 archivos",
-        text: "Puedes adjuntar hasta 5 documentos por requisicion.",
+        text: "Puedes adjuntar hasta 5 documentos por requisición.",
       });
       e.target.value = "";
       return;

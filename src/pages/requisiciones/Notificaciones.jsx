@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 import useAuth from "../../hooks/useAuth";
 import useNotificaciones from "../../hooks/useNotificaciones";
+import { formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
 
 const NOTIFICACIONES_POR_PAGINA = 10;
 
@@ -58,8 +59,8 @@ const Notificaciones = () => {
 
   const descripcion =
     auth.rol === "admin" || auth.rol === "superadmin"
-      ? "Mantente al dia con nuevas requisiciones y actualizaciones del sistema."
-      : "Mantente al dia con las actualizaciones de tus requisiciones.";
+      ? "Mantente al día con nuevas requisiciones y actualizaciones del sistema."
+      : "Mantente al día con las actualizaciones de tus requisiciones.";
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8 2xl:max-w-[1600px]">
@@ -101,7 +102,7 @@ const Notificaciones = () => {
             <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
-              placeholder="Buscar por requisicion o mensaje..."
+              placeholder="Buscar por requisición o mensaje..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="w-full rounded-lg border border-[#E2E8F0] bg-white px-11 py-3 text-sm text-[#0F172A] shadow-sm outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#DBEAFE]"
@@ -158,8 +159,8 @@ const Notificaciones = () => {
               <h3 className="font-semibold text-[#334155]">No hay notificaciones</h3>
               <p className="mt-1 text-sm text-[#64748B]">
                 {busqueda
-                  ? "No hay notificaciones que coincidan con tu busqueda."
-                  : "Las notificaciones apareceran aqui cuando haya actualizaciones."}
+                  ? "No hay notificaciones que coincidan con tu búsqueda."
+                  : "Las notificaciones aparecerán aquí cuando haya actualizaciones."}
               </p>
             </div>
           ) : (
@@ -201,7 +202,7 @@ const Notificaciones = () => {
                               n.requisicion.status
                             )}`}
                           >
-                            {n.requisicion.status}
+                            {formatearStatusRequisicion(n.requisicion.status)}
                           </span>
                         )}
                         <span className="inline-flex items-center gap-1 text-sm text-[#64748B]">
@@ -228,7 +229,7 @@ const Notificaciones = () => {
                         ? "cursor-wait bg-red-50 text-red-300"
                         : "text-[#64748B] hover:bg-red-50 hover:text-red-600"
                     }`}
-                    title="Eliminar notificacion"
+                    title="Eliminar notificación"
                     aria-busy={deletingId === n.id}
                   >
                     <FiTrash2 className="h-4 w-4" />

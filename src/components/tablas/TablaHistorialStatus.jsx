@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FiArrowLeft, FiArrowRight, FiClock, FiFileText } from "react-icons/fi";
+import { formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
 
 const TablaHistorialStatus = ({ historial }) => {
   const registrosPorPagina = 10;
@@ -36,11 +37,6 @@ const TablaHistorialStatus = ({ historial }) => {
     });
   };
 
-  const capitalizar = (texto) => {
-    if (!texto) return "Sin dato";
-    return texto.charAt(0).toUpperCase() + texto.slice(1);
-  };
-
   const getStatusColor = (status) => {
     const colores = {
       creada: "border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]",
@@ -51,7 +47,7 @@ const TablaHistorialStatus = ({ historial }) => {
       autorizada: "border-cyan-100 bg-cyan-50 text-cyan-700",
       "proceso de pago": "border-pink-100 bg-pink-50 text-pink-700",
       "proveedor preparando envio": "border-indigo-100 bg-indigo-50 text-indigo-700",
-      "proveedor preparando envÃ­o": "border-indigo-100 bg-indigo-50 text-indigo-700",
+      "proveedor preparando envío": "border-indigo-100 bg-indigo-50 text-indigo-700",
       "liberacion aduanal": "border-violet-100 bg-violet-50 text-violet-700",
       "proceso de entrega": "border-orange-100 bg-orange-50 text-orange-700",
       "entregada parcial": "border-teal-100 bg-teal-50 text-teal-700",
@@ -71,7 +67,7 @@ const TablaHistorialStatus = ({ historial }) => {
               Movimientos registrados
             </h2>
             <p className="text-sm text-[#64748B]">
-              Bitacora de cambios de status por requisicion.
+              Bitácora de cambios de status por requisición.
             </p>
           </div>
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
@@ -106,7 +102,7 @@ const TablaHistorialStatus = ({ historial }) => {
                         {item.requisicion?.folio || "Sin folio"}
                       </p>
                       <p className="text-xs text-[#64748B]">
-                        Requisicion
+                        Requisición
                       </p>
                     </div>
                   </div>
@@ -119,7 +115,7 @@ const TablaHistorialStatus = ({ historial }) => {
                         item.statusAnterior
                       )}`}
                     >
-                      {capitalizar(item.statusAnterior)}
+                      {formatearStatusRequisicion(item.statusAnterior)}
                     </span>
                     <FiArrowRight className="h-4 w-4 text-[#64748B]" />
                     <span
@@ -127,7 +123,7 @@ const TablaHistorialStatus = ({ historial }) => {
                         item.statusNuevo
                       )}`}
                     >
-                      {capitalizar(item.statusNuevo)}
+                      {formatearStatusRequisicion(item.statusNuevo)}
                     </span>
                   </div>
                 </td>
@@ -158,7 +154,7 @@ const TablaHistorialStatus = ({ historial }) => {
                     No hay movimientos registrados.
                   </p>
                   <p className="mt-1 text-sm text-[#64748B]">
-                    Ajusta la busqueda o actualiza el historial.
+                    Ajusta la búsqueda o actualiza el historial.
                   </p>
                 </td>
               </tr>

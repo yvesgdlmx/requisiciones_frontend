@@ -120,7 +120,7 @@ const TablaCategorias = ({
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-[#334155]">
-              Categorias registradas
+              Categorías registradas
             </h2>
             <p className="text-sm text-[#64748B]">
               Presupuestos disponibles por periodo y moneda.
@@ -128,7 +128,7 @@ const TablaCategorias = ({
           </div>
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
             <FiFolder className="h-3.5 w-3.5" />
-            {categorias.length} categorias
+            {categorias.length} categorías
           </span>
         </div>
       </div>
@@ -171,7 +171,7 @@ const TablaCategorias = ({
                       {moneda}
                     </span>
                   </td>
-                  <td className="px-6 py-5">{categoria.diasPeriodo || categoria.periodo} dias</td>
+                  <td className="px-6 py-5">{categoria.diasPeriodo || categoria.periodo} días</td>
                   <td className="px-6 py-5">{formatearFecha(categoria.fechaInicio)}</td>
                   <td className="px-6 py-5">{formatearFecha(categoria.fechaFin)}</td>
                   <td className="px-6 py-5 text-right">{renderMenu(categoria, idx)}</td>
@@ -182,7 +182,7 @@ const TablaCategorias = ({
             {categorias.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-[#64748B]">
-                  No hay categorias registradas.
+                  No hay categorías registradas.
                 </td>
               </tr>
             )}
@@ -199,7 +199,7 @@ const TablaCategorias = ({
                 <div>
                   <p className="font-semibold capitalize text-[#334155]">{categoria.nombre}</p>
                   <p className="text-sm text-[#64748B]">
-                    {categoria.diasPeriodo || categoria.periodo} dias
+                    {categoria.diasPeriodo || categoria.periodo} días
                   </p>
                 </div>
                 {renderMenu(categoria, idx)}
@@ -234,7 +234,7 @@ const TablaCategorias = ({
             Mostrando <span className="font-semibold text-[#334155]">{indiceInicial + 1}</span>{" "}
             a <span className="font-semibold text-[#334155]">{indiceFinal}</span>{" "}
             de <span className="font-semibold text-[#334155]">{categorias.length}</span>{" "}
-            categorias
+            categorías
           </p>
 
           <div className="flex items-center gap-2">

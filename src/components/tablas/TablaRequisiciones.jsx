@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { FaExclamationTriangle, FaPencilAlt, FaTrash } from "react-icons/fa";
 import { FiArrowLeft, FiArrowRight, FiFileText } from "react-icons/fi";
 import Swal from "sweetalert2";
-import { capitalizeWords, esRequisicionInactiva } from "../../helpers/FuncionesHelpers";
+import {
+  capitalizeWords,
+  esRequisicionInactiva,
+  formatearStatusRequisicion,
+} from "../../helpers/FuncionesHelpers";
 
 const formatDate = (fechaOriginal) => {
   const dateTime =
@@ -112,8 +116,8 @@ const TablaRequisiciones = ({
     if (item.status !== "creada" || !accionPermitida(item)) {
       Swal.fire({
         title: "No permitido",
-        html: `No puedes editar esta requisicion porque su status ya cambio o paso mas de una hora.<br>
-        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelacion.</span>`,
+        html: `No puedes editar esta requisición porque su status ya cambió o pasó más de una hora.<br>
+        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelación.</span>`,
         icon: "warning",
       });
       return;
@@ -126,8 +130,8 @@ const TablaRequisiciones = ({
     if (item.status !== "creada" || !accionPermitida(item)) {
       Swal.fire({
         title: "No permitido",
-        html: `No puedes eliminar esta requisicion porque su status ya cambio o paso mas de una hora.<br>
-        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelacion.</span>`,
+        html: `No puedes eliminar esta requisición porque su status ya cambió o pasó más de una hora.<br>
+        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelación.</span>`,
         icon: "warning",
       });
       return;
@@ -161,7 +165,7 @@ const TablaRequisiciones = ({
               <th className="px-6 py-4 text-left font-semibold">Folio</th>
               <th className="px-6 py-4 text-left font-semibold">Fecha</th>
               <th className="px-6 py-4 text-left font-semibold">Solicitante</th>
-              <th className="px-6 py-4 text-left font-semibold">Area</th>
+              <th className="px-6 py-4 text-left font-semibold">Área</th>
               <th className="px-6 py-4 text-left font-semibold">Comprador</th>
               <th className="px-6 py-4 text-left font-semibold">Prioridad</th>
               {mostrarColumnasAdmin && (
@@ -192,7 +196,7 @@ const TablaRequisiciones = ({
                         esRequisicionInactiva(item.fechaCambioStatus, item.status) && (
                           <FaExclamationTriangle
                             className="text-amber-500"
-                            title="Mas de 48 horas sin actividad"
+                            title="Más de 48 horas sin actividad"
                           />
                         )}
                       {mostrarNotificacion && item.status === "creada" && (
@@ -228,7 +232,7 @@ const TablaRequisiciones = ({
 
                 <td className="px-6 py-5">
                   <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${colorStatus(item.status)}`}>
-                    {capitalizeWords(item.status)}
+                    {formatearStatusRequisicion(item.status)}
                   </span>
                 </td>
 

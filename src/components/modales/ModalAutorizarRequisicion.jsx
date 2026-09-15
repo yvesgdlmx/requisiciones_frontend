@@ -4,7 +4,7 @@ import { AiOutlineFilePdf, AiFillFileImage } from "react-icons/ai";
 import { FaTimes } from "react-icons/fa";
 import clienteAxios from "../../config/clienteAxios";
 import Swal from "sweetalert2";
-import { capitalizeWords } from "../../helpers/FuncionesHelpers";
+import { capitalizeWords, formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
 import CardInfoRequisicion from "../cards/CardInfoRequisicion";
 import CardArticulo from "../cards/CardArticulo";
 import { FaTrashAlt } from "react-icons/fa";
@@ -162,7 +162,7 @@ const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) =
                     : requisicion?.solicitante}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {capitalizeWords(requisicion?.status)}
+                  {formatearStatusRequisicion(requisicion?.status)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                   {capitalizeWords(requisicion?.prioridad)}

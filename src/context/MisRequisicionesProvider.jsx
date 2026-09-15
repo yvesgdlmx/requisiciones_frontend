@@ -1,9 +1,10 @@
-import React, { createContext, useState, useEffect } from "react";
-import clienteAxios from "../config/clienteAxios";
+import React, { createContext, useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import clienteAxios from "../config/clienteAxios";
+
 const MisRequisicionesContext = createContext();
+
 export const MisRequisicionesProvider = ({ children }) => {
-  // Estados principales
   const [datos, setDatos] = useState([]);
   const [error, setError] = useState(null);
   const [modalNuevoActivo, setModalNuevoActivo] = useState(false);
@@ -12,7 +13,6 @@ export const MisRequisicionesProvider = ({ children }) => {
   const [requisicionSeleccionada, setRequisicionSeleccionada] = useState(null);
   const [requisicionAEditar, setRequisicionAEditar] = useState(null);
 
-  // Estados para búsqueda y filtrado
   const opciones = [
     { value: "folio", label: "Folio" },
     { value: "fecha", label: "Fecha" },
@@ -24,8 +24,7 @@ export const MisRequisicionesProvider = ({ children }) => {
   const [busqueda, setBusqueda] = useState("");
   const itemsPorPagina = 10;
 
-  // Detalles para el resumen por status
-   const detallesDeStatus = [
+  const detallesDeStatus = [
     { status: "creada", color: "bg-gray-200", textColor: "text-gray-800" },
     { status: "rechazada", color: "bg-red-400", textColor: "text-red-800" },
     { status: "aprobada", color: "bg-green-400", textColor: "text-green-800" },
@@ -33,7 +32,7 @@ export const MisRequisicionesProvider = ({ children }) => {
     { status: "esperando autorizacion", color: "bg-yellow-200", textColor: "text-yellow-800" },
     { status: "autorizada", color: "bg-cyan-200", textColor: "text-cyan-800" },
     { status: "proceso de pago", color: "bg-pink-200", textColor: "text-pink-800" },
-    { status: "proveedor preparando envío", color: "bg-indigo-200", textColor: "text-indigo-800" },
+    { status: "proveedor preparando envio", color: "bg-indigo-200", textColor: "text-indigo-800" },
     { status: "liberacion aduanal", color: "bg-purple-200", textColor: "text-purple-800" },
     { status: "proceso de entrega", color: "bg-orange-200", textColor: "text-orange-800" },
     { status: "entregada parcial", color: "bg-teal-200", textColor: "text-teal-800" },
@@ -41,7 +40,6 @@ export const MisRequisicionesProvider = ({ children }) => {
     { status: "cancelada", color: "bg-red-200", textColor: "text-red-800" },
   ];
 
-  // Función para obtener las requisiciones y transformar los datos
   const obtenerRequisiciones = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -50,14 +48,9 @@ export const MisRequisicionesProvider = ({ children }) => {
       const { requisiciones } = response.data;
       const datosTransformados = requisiciones.map((item) => {
         const fechaObj = new Date(item.fechaHora);
-        const primerNombre =
-          item.usuario && item.usuario.nombre
-            ? item.usuario.nombre.split(" ")[0]
-            : "";
-        const primerApellido =
-          item.usuario && item.usuario.apellido
-            ? item.usuario.apellido.split(" ")[0]
-            : "";
+        const primerNombre = item.usuario?.nombre ? item.usuario.nombre.split(" ")[0] : "";
+        const primerApellido = item.usuario?.apellido ? item.usuario.apellido.split(" ")[0] : "";
+
         return {
           id: item.id,
           folio: item.folio,
@@ -67,11 +60,8 @@ export const MisRequisicionesProvider = ({ children }) => {
             minute: "2-digit",
             second: "2-digit",
           }),
-          // Conservamos la fecha original para posibles comparaciones
           fechaOriginal: fechaObj,
           objetivo: item.objetivo,
-          // Estos campos se mantienen en caso de que la cabecera tenga información de artículo,
-          // aunque en la nueva estructura, los artículos vienen en su propio arreglo.
           cantidad: item.cantidad,
           unidadMedida: item.unidadMedida,
           solicitante:
@@ -97,7 +87,7 @@ export const MisRequisicionesProvider = ({ children }) => {
           comentario: item.comentario,
           monto: item.monto,
           comentarioAutorizador: item.comentarioAutorizador,
-          eta: item.eta
+          eta: item.eta,
         };
       });
       setDatos(datosTransformados);
@@ -111,7 +101,6 @@ export const MisRequisicionesProvider = ({ children }) => {
     obtenerRequisiciones();
   }, []);
 
-  // Filtrar datos según la búsqueda y la opción seleccionada
   const datosFiltrados = datos.filter((item) =>
     item[opcionSeleccionada.value]
       .toString()
@@ -119,13 +108,11 @@ export const MisRequisicionesProvider = ({ children }) => {
       .includes(busqueda.toLowerCase())
   );
 
-  // Agrupar por status para el resumen
   const agrupacionStatus = datosFiltrados.reduce((acc, item) => {
     acc[item.status] = (acc[item.status] || 0) + 1;
     return acc;
   }, {});
 
-  // Funciones para actualizar los estados a partir de eventos
   const handleSelectChange = (opcion) => setOpcionSeleccionada(opcion);
   const handleInputChange = (e) => setBusqueda(e.target.value);
   const handleRowClick = (requisicion) => {
@@ -144,6 +131,7 @@ export const MisRequisicionesProvider = ({ children }) => {
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     });
+
     if (resultado.isConfirmed) {
       try {
         const token = localStorage.getItem("token");
@@ -170,7 +158,6 @@ export const MisRequisicionesProvider = ({ children }) => {
   return (
     <MisRequisicionesContext.Provider
       value={{
-        // Estados y setters
         datos,
         setDatos,
         error,
@@ -185,7 +172,6 @@ export const MisRequisicionesProvider = ({ children }) => {
         setRequisicionSeleccionada,
         requisicionAEditar,
         setRequisicionAEditar,
-        // Parámetros de búsqueda y filtrado
         opciones,
         opcionSeleccionada,
         setOpcionSeleccionada,
@@ -193,12 +179,10 @@ export const MisRequisicionesProvider = ({ children }) => {
         setBusqueda,
         handleSelectChange,
         handleInputChange,
-        // Datos derivados
         datosFiltrados,
         itemsPorPagina,
         agrupacionStatus,
         detallesDeStatus,
-        // Funciones de manejo
         obtenerRequisiciones,
         handleRowClick,
         handleEliminarRequisicion,
@@ -208,4 +192,5 @@ export const MisRequisicionesProvider = ({ children }) => {
     </MisRequisicionesContext.Provider>
   );
 };
+
 export default MisRequisicionesContext;

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import Modal from "react-modal";
 import { AiOutlineFilePdf, AiFillFileImage } from "react-icons/ai";
-import { capitalizeWords } from "../../helpers/FuncionesHelpers";
+import { capitalizeWords, formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
 import CardInfoRequisicion from "../cards/CardInfoRequisicion";
 import CardArticulo from "../cards/CardArticulo";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -113,7 +113,7 @@ const ModalDetalleRequisicion = ({ isOpen, requisicion, onClose }) => {
                     : requisicion?.solicitante}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {capitalizeWords(requisicion?.status)}
+                  {formatearStatusRequisicion(requisicion?.status)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                   {capitalizeWords(requisicion?.prioridad)}

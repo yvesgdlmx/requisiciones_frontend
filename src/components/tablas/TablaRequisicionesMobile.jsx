@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { FaTrash, FaPencilAlt, FaExclamationTriangle } from "react-icons/fa";
+import { FaExclamationTriangle, FaPencilAlt, FaTrash } from "react-icons/fa";
 import Swal from "sweetalert2";
-import { esRequisicionInactiva } from "../../helpers/FuncionesHelpers";
+import {
+  esRequisicionInactiva,
+  formatearStatusRequisicion,
+} from "../../helpers/FuncionesHelpers";
 
 const TablaRequisicionesMobile = ({
   data,
@@ -16,17 +19,16 @@ const TablaRequisicionesMobile = ({
   const [openActionsIndex, setOpenActionsIndex] = useState(null);
   const totalPaginas = Math.ceil(data.length / itemsPorPagina);
   const indiceInicio = (pagina - 1) * itemsPorPagina;
-  const registrosActuales = data.slice(
-    indiceInicio,
-    indiceInicio + itemsPorPagina
-  );
+  const registrosActuales = data.slice(indiceInicio, indiceInicio + itemsPorPagina);
+
   const accionPermitida = (item) => {
     if (!item.fechaOriginal) return true;
     const ahora = new Date();
     const fechaItem = new Date(item.fechaOriginal);
     const diferencia = ahora - fechaItem;
-    return diferencia <= 3600000; // 1 hora en milisegundos
+    return diferencia <= 3600000;
   };
+
   const getColorStatus = (status) => {
     switch (status) {
       case "creada":
@@ -51,9 +53,11 @@ const TablaRequisicionesMobile = ({
         return "bg-gray-100 text-gray-800";
     }
   };
+
   const handleEditarItem = (item, e) => {
     e.stopPropagation();
     setOpenActionsIndex(null);
+
     if (item.status !== "creada") {
       Swal.fire({
         title: "No permitido",
@@ -62,6 +66,7 @@ const TablaRequisicionesMobile = ({
       });
       return;
     }
+
     if (!accionPermitida(item)) {
       Swal.fire({
         title: "Tiempo agotado",
@@ -70,20 +75,23 @@ const TablaRequisicionesMobile = ({
       });
       return;
     }
+
     onEditarClick && onEditarClick(item, e);
   };
 
   const handleEliminarItem = (item, e) => {
     e.stopPropagation();
     setOpenActionsIndex(null);
+
     if (item.status !== "creada") {
       Swal.fire({
         title: "No permitido",
-        text: "No puedes editar esta requisición porque su status ya cambió.",
+        text: "No puedes eliminar esta requisición porque su status ya cambió.",
         icon: "warning",
       });
       return;
     }
+
     if (!accionPermitida(item)) {
       Swal.fire({
         title: "Tiempo agotado",
@@ -92,6 +100,7 @@ const TablaRequisicionesMobile = ({
       });
       return;
     }
+
     onEliminarClick && onEliminarClick(item, e);
   };
 
@@ -99,57 +108,64 @@ const TablaRequisicionesMobile = ({
     e.stopPropagation();
     setOpenActionsIndex(openActionsIndex === index ? null : index);
   };
+
   const handlePrevPage = () => {
     if (pagina > 1) setPagina(pagina - 1);
   };
+
   const handleNextPage = () => {
     if (pagina < totalPaginas) setPagina(pagina + 1);
   };
+
   return (
     <div>
       {registrosActuales.map((item, index) => (
         <div
           key={index}
-          className="bg-white shadow-md rounded-xl mb-6 border border-gray-100 hover:shadow-lg transition-shadow"
+          className="mb-6 rounded-xl border border-gray-100 bg-white shadow-md transition-shadow hover:shadow-lg"
         >
-          {/* Encabezado */}
-          <div className="p-4 flex justify-between items-center border-b border-gray-200">
+          <div className="flex items-center justify-between border-b border-gray-200 p-4">
             <div className="flex items-center">
               {mostrarNotificacion &&
                 esRequisicionInactiva(item.fechaCambioStatus, item.status) && (
                   <FaExclamationTriangle
-                    className="text-yellow-500 text-lg"
+                    className="text-lg text-yellow-500"
                     title="Más de 48 horas sin actividad"
                   />
                 )}
               {mostrarNotificacion && item.status === "creada" && (
-                <p className="bg-red-600 text-white px-[5.5px] py-[1.5px] text-xs rounded-full font-semibold mx-2">
+                <p className="mx-2 rounded-full bg-red-600 px-[5.5px] py-[1.5px] text-xs font-semibold text-white">
                   new
                 </p>
               )}
-              <span className="text-orange-700 font-normal text-md">
+              <span className="text-md font-normal text-orange-700">
                 {item.folio}
               </span>
             </div>
+
             {mostrarAcciones && (
               <div className="relative">
-                <div
-                  className="text-gray-400 text-2xl cursor-pointer"
+                <button
+                  type="button"
+                  className="text-2xl text-gray-400"
                   onClick={(e) => toggleActions(e, index)}
+                  aria-label="Abrir acciones"
                 >
                   ⋮
-                </div>
+                </button>
                 {openActionsIndex === index && (
-                  <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  <div className="absolute right-0 z-10 mt-2 w-36 rounded-lg border border-gray-200 bg-white shadow-lg">
                     <button
+                      type="button"
                       onClick={(e) => handleEditarItem(item, e)}
-                      className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-blue-50 transition-colors"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left transition-colors hover:bg-blue-50"
                     >
                       <FaPencilAlt className="text-blue-500" /> Editar
                     </button>
                     <button
+                      type="button"
                       onClick={(e) => handleEliminarItem(item, e)}
-                      className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-red-50 transition-colors"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left transition-colors hover:bg-red-50"
                     >
                       <FaTrash className="text-red-500" /> Eliminar
                     </button>
@@ -158,12 +174,12 @@ const TablaRequisicionesMobile = ({
               </div>
             )}
           </div>
-          {/* Cuerpo */}
+
           <div
-            className="p-4 cursor-pointer"
+            className="cursor-pointer p-4"
             onClick={() => onRowClick && onRowClick(item)}
           >
-            <div className="flex justify-between items-start mb-3">
+            <div className="mb-3 flex items-start justify-between">
               <div>
                 <p className="text-lg font-semibold text-gray-700">
                   {item.solicitante}
@@ -171,25 +187,24 @@ const TablaRequisicionesMobile = ({
                 <p className="text-sm text-gray-500">{item.area}</p>
               </div>
               <span
-                className={`text-xs px-3 py-1 rounded-full font-medium ${getColorStatus(
+                className={`rounded-full px-3 py-1 text-xs font-medium ${getColorStatus(
                   item.status
                 )}`}
               >
-                {item.status}
+                {formatearStatusRequisicion(item.status)}
               </span>
             </div>
+
             {item.descripcion && (
               <div className="mb-4">
-                <p className="text-gray-600 text-sm font-semibold">
-                  Prioridad:
-                </p>
+                <p className="text-sm font-semibold text-gray-600">Prioridad:</p>
                 <span className="text-sm font-normal text-gray-500">
                   {item.prioridad}
                 </span>
               </div>
             )}
-            {/* Pie: Fechas */}
-            <div className="border-t border-gray-200 pt-3 text-sm text-gray-500 flex justify-between">
+
+            <div className="flex justify-between border-t border-gray-200 pt-3 text-sm text-gray-500">
               <div>
                 <span className="font-semibold text-gray-600">Fecha:</span>{" "}
                 {item.fecha}
@@ -202,29 +217,31 @@ const TablaRequisicionesMobile = ({
           </div>
         </div>
       ))}
+
       {registrosActuales.length === 0 && (
-        <div className="text-center text-gray-400 py-4">
+        <div className="py-4 text-center text-gray-400">
           No se encontraron registros.
         </div>
       )}
-      {/* Paginación */}
+
       {totalPaginas > 1 && (
-        <div className="flex justify-between items-center mt-4">
+        <div className="mt-4 flex items-center justify-between">
           <button
+            type="button"
             onClick={handlePrevPage}
-            className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50 hover:bg-gray-100 transition-colors"
+            className="rounded-lg border border-gray-300 px-4 py-2 transition-colors hover:bg-gray-100 disabled:opacity-50"
             disabled={pagina === 1}
           >
             Anterior
           </button>
           <div className="text-sm text-gray-700">
-            {indiceInicio + 1} -{" "}
-            {Math.min(indiceInicio + itemsPorPagina, data.length)} de{" "}
+            {indiceInicio + 1} - {Math.min(indiceInicio + itemsPorPagina, data.length)} de{" "}
             {data.length} registros
           </div>
           <button
+            type="button"
             onClick={handleNextPage}
-            className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50 hover:bg-gray-100 transition-colors"
+            className="rounded-lg border border-gray-300 px-4 py-2 transition-colors hover:bg-gray-100 disabled:opacity-50"
             disabled={pagina === totalPaginas}
           >
             Siguiente
@@ -234,4 +251,5 @@ const TablaRequisicionesMobile = ({
     </div>
   );
 };
+
 export default TablaRequisicionesMobile;

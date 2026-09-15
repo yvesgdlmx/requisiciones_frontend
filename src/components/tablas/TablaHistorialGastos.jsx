@@ -8,6 +8,7 @@ import {
   FiTrendingDown,
   FiUser,
 } from "react-icons/fi";
+import { formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
 
 const TablaHistorialGastos = ({ historial }) => {
   const registrosPorPagina = 10;
@@ -70,11 +71,6 @@ const TablaHistorialGastos = ({ historial }) => {
     return `${simbolo}${monto} ${moneda}`;
   };
 
-  const capitalizar = (texto) => {
-    if (!texto) return "Sin status";
-    return texto.charAt(0).toUpperCase() + texto.slice(1);
-  };
-
   const getStatusColor = (status) => {
     const colores = {
       creada: "border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]",
@@ -112,7 +108,7 @@ const TablaHistorialGastos = ({ historial }) => {
               Gastos registrados
             </h2>
             <p className="text-sm text-[#64748B]">
-              Movimientos de presupuesto por categoria.
+              Movimientos de presupuesto por categoría.
             </p>
           </div>
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
@@ -126,7 +122,7 @@ const TablaHistorialGastos = ({ historial }) => {
         <table className="min-w-full whitespace-nowrap">
           <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-xs uppercase tracking-wide text-[#64748B]">
             <tr>
-              <th className="px-6 py-4 text-left font-semibold">Categoria</th>
+              <th className="px-6 py-4 text-left font-semibold">Categoría</th>
               <th className="px-6 py-4 text-left font-semibold">Status</th>
               <th className="px-6 py-4 text-right font-semibold">Presupuesto</th>
               <th className="px-6 py-4 text-right font-semibold">Gastado</th>
@@ -147,7 +143,7 @@ const TablaHistorialGastos = ({ historial }) => {
                     </div>
                     <div>
                       <p className="font-semibold capitalize text-[#334155]">
-                        {item.categoriaNombre || "Sin categoria"}
+                        {item.categoriaNombre || "Sin categoría"}
                       </p>
                       <p className="text-xs text-[#64748B]">
                         {item.moneda || "MXN"}
@@ -158,7 +154,7 @@ const TablaHistorialGastos = ({ historial }) => {
 
                 <td className="px-6 py-5">
                   <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusColor(item.statusRequisicion)}`}>
-                    {capitalizar(item.statusRequisicion)}
+                    {formatearStatusRequisicion(item.statusRequisicion)}
                   </span>
                 </td>
 
@@ -183,7 +179,7 @@ const TablaHistorialGastos = ({ historial }) => {
                     <FiCalendar className="h-4 w-4 text-[#2563EB]" />
                     <div>
                       <p className="font-medium text-[#334155]">
-                        {item.diasPeriodo || 0} dias
+                        {item.diasPeriodo || 0} días
                       </p>
                       <p className="text-xs text-[#64748B]">
                         {formatearFecha(item.fechaInicioPeriodo)} - {formatearFecha(item.fechaFinPeriodo)}
@@ -211,7 +207,7 @@ const TablaHistorialGastos = ({ historial }) => {
                     No hay registros en el historial.
                   </p>
                   <p className="mt-1 text-sm text-[#64748B]">
-                    Ajusta la busqueda o descarga el historial disponible.
+                    Ajusta la búsqueda o descarga el historial disponible.
                   </p>
                 </td>
               </tr>
@@ -226,14 +222,14 @@ const TablaHistorialGastos = ({ historial }) => {
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <p className="font-semibold capitalize text-[#334155]">
-                  {item.categoriaNombre || "Sin categoria"}
+                  {item.categoriaNombre || "Sin categoría"}
                 </p>
                 <p className="text-sm text-[#64748B]">
                   {item.usuarioComprador || "Sin usuario"}
                 </p>
               </div>
               <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusColor(item.statusRequisicion)}`}>
-                {capitalizar(item.statusRequisicion)}
+                {formatearStatusRequisicion(item.statusRequisicion)}
               </span>
             </div>
 

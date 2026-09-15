@@ -34,13 +34,13 @@ const ListadoCategorias = () => {
 
   const handleEliminar = async (id, nombre) => {
     const result = await Swal.fire({
-      title: "Estas seguro?",
-      text: `Se eliminara la categoria "${nombre}"`,
+      title: "¿Estás seguro?",
+      text: `Se eliminará la categoría "${nombre}"`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#2563EB",
       cancelButtonColor: "#EF4444",
-      confirmButtonText: "Si, eliminar",
+      confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     });
 
@@ -51,7 +51,7 @@ const ListadoCategorias = () => {
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Categoria eliminada",
+          title: "Categoría eliminada",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
@@ -70,7 +70,7 @@ const ListadoCategorias = () => {
         toast: true,
         position: "top-end",
         icon: "success",
-        title: modoEdicion ? "Categoria actualizada" : "Categoria creada",
+        title: modoEdicion ? "Categoría actualizada" : "Categoría creada",
         showConfirmButton: false,
         timer: 3000,
         timerProgressBar: true,
@@ -89,10 +89,10 @@ const ListadoCategorias = () => {
                 Finanzas
               </div>
               <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">
-                Categorias de gasto
+                Categorías de gasto
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">
-                Visualiza y administra los presupuestos por categoria.
+                Visualiza y administra los presupuestos por categoría.
               </p>
             </div>
 
@@ -102,7 +102,7 @@ const ListadoCategorias = () => {
               onClick={abrirModalCrear}
             >
               <FiPlus className="h-4 w-4" />
-              Nueva categoria
+              Nueva categoría
             </button>
           </div>
         </div>
@@ -112,7 +112,7 @@ const ListadoCategorias = () => {
             <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
-              placeholder="Buscar categoria..."
+              placeholder="Buscar categoría..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="w-full rounded-lg border border-[#E2E8F0] bg-white px-11 py-3 text-sm text-[#0F172A] shadow-sm outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#DBEAFE]"
@@ -126,7 +126,7 @@ const ListadoCategorias = () => {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#DBEAFE] text-[#2563EB]">
                 <FiFolder className="h-5 w-5" />
               </div>
-              <p className="font-semibold text-[#334155]">Cargando categorias...</p>
+              <p className="font-semibold text-[#334155]">Cargando categorías...</p>
               <p className="mt-1 text-sm text-[#64748B]">Actualizando presupuestos registrados.</p>
             </div>
           ) : (

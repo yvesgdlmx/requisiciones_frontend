@@ -4,7 +4,7 @@ import { FaSave, FaTimes, FaTrashAlt } from "react-icons/fa";
 import { AiOutlineFilePdf, AiFillFileImage } from "react-icons/ai";
 import Swal from "sweetalert2";
 import clienteAxios from "../../config/clienteAxios";
-import { capitalizeWords } from "../../helpers/FuncionesHelpers";
+import { capitalizeWords, formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
 import CardInfoRequisicion from "../cards/CardInfoRequisicion";
 import CardArticulo from "../cards/CardArticulo";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -248,7 +248,7 @@ const ModalAdminDetalleRequisicion = ({
       Swal.fire({
         icon: "warning",
         title: "Maximo 5 archivos",
-        text: "Puedes adjuntar hasta 5 documentos por requisicion.",
+        text: "Puedes adjuntar hasta 5 documentos por requisición.",
       });
       e.target.value = "";
       return;
@@ -606,7 +606,7 @@ const ModalAdminDetalleRequisicion = ({
                               value={status}
                               disabled={isDisabled}
                             >
-                              {capitalizeWords(status)}
+                              {formatearStatusRequisicion(status)}
                               {isDisabled ? " (presupuesto insuficiente)" : ""}
                             </option>
                           );

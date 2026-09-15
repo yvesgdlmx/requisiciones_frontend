@@ -36,10 +36,10 @@ const EnAutorizacion = () => {
           setRequisicionSeleccionada(data.requisicion);
           setModalAutorizarActivo(true);
         } else {
-          console.error("Respuesta inesperada al obtener requisicion:", data);
+          console.error("Respuesta inesperada al obtener requisición:", data);
         }
       } catch (err) {
-        console.error("Error al obtener requisicion desde notificacion:", err);
+        console.error("Error al obtener requisición desde notificación:", err);
       } finally {
         try {
           window.history.replaceState({}, document.title);
@@ -59,13 +59,13 @@ const EnAutorizacion = () => {
             <div>
               <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
                 <FiShield className="h-3.5 w-3.5" />
-                Autorizacion
+                Autorización
               </div>
               <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">
                 Autorizar requisiciones
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">
-                Revisa y resuelve las requisiciones pendientes de aprobacion superior.
+                Revisa y resuelve las requisiciones pendientes de aprobación superior.
               </p>
             </div>
 
@@ -112,7 +112,7 @@ const EnAutorizacion = () => {
                 No hay requisiciones pendientes
               </h3>
               <p className="mt-1 text-sm text-[#64748B]">
-                Las requisiciones por aprobar apareceran aqui.
+                Las requisiciones por aprobar aparecerán aquí.
               </p>
             </div>
           )}

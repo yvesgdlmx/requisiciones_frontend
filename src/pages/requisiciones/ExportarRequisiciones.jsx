@@ -15,6 +15,7 @@ import {
 } from "react-icons/fi";
 import useExportarRequisiciones from "../../hooks/useExportarRequisiciones";
 import { exportarRequisicionesAExcel } from "../../services/excelService";
+import { formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
 
 const ExportarRequisiciones = () => {
   const {
@@ -125,7 +126,7 @@ const ExportarRequisiciones = () => {
       color: "text-emerald-700",
     },
     {
-      label: "Articulos",
+      label: "Artículos",
       value: totalArticulos,
       icon: FiPackage,
       color: "text-[#2563EB]",
@@ -149,7 +150,7 @@ const ExportarRequisiciones = () => {
     },
     {
       label: "Hojas incluidas",
-      value: "Requisiciones y Articulos",
+      value: "Requisiciones y Artículos",
     },
     {
       label: "Fecha de descarga",
@@ -192,7 +193,7 @@ const ExportarRequisiciones = () => {
             <div>
               <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
                 <FiFileText className="h-3.5 w-3.5" />
-                Reporteria
+                Reportería
               </div>
               <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">
                 Exportar requisiciones
@@ -292,7 +293,7 @@ const ExportarRequisiciones = () => {
                 <option value="">Todos los status</option>
                 {statusDisponibles.map((status) => (
                   <option key={status} value={status}>
-                    {capitalizar(status)}
+                    {formatearStatusRequisicion(status)}
                   </option>
                 ))}
               </select>
@@ -327,7 +328,7 @@ const ExportarRequisiciones = () => {
               <FiRefreshCw className="h-5 w-5 animate-spin" />
             </div>
             <p className="font-semibold text-slate-700">Cargando requisiciones...</p>
-            <p className="mt-1 text-sm text-[#64748B]">Actualizando la informacion para exportar.</p>
+            <p className="mt-1 text-sm text-[#64748B]">Actualizando la información para exportar.</p>
           </div>
         ) : (
           <div className="border-t border-[#E2E8F0] bg-[#F8FAFC]">
@@ -361,7 +362,7 @@ const ExportarRequisiciones = () => {
                     Resumen del archivo
                   </h2>
                   <p className="mt-1 text-sm text-[#64748B]">
-                    Vista previa de los datos que se incluiran en la descarga.
+                    Vista previa de los datos que se incluirán en la descarga.
                   </p>
                 </div>
                 <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
