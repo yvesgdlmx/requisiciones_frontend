@@ -1,24 +1,34 @@
-// Función que capitaliza la primera letra de cada palabra en el texto
-const capitalizeWords = (texto) => {
+export const capitalizeWords = (texto) => {
   if (typeof texto !== "string") {
-    // Puedes optar por retornar una cadena vacía o convertir el valor a string
     return "";
   }
+
   return texto
-    .split(' ')
+    .split(" ")
     .map((palabra) => palabra.charAt(0).toUpperCase() + palabra.slice(1))
-    .join(' ');
+    .join(" ");
 };
-export { capitalizeWords }
+
+const statusConAcentos = {
+  "esperando autorizacion": "esperando autorizaci\u00f3n",
+  "proveedor preparando envio": "proveedor preparando env\u00edo",
+  "proveedor preparando env\u00edo": "proveedor preparando env\u00edo",
+  "liberacion aduanal": "liberaci\u00f3n aduanal",
+};
+
+export const formatearStatusRequisicion = (status) => {
+  if (typeof status !== "string") return "";
+  return capitalizeWords(statusConAcentos[status.toLowerCase()] || status);
+};
 
 export const esRequisicionInactiva = (fechaCambioStatus, status) => {
-  const estadosFinales = ['concluida', 'cancelada', 'rechazada' ];
-  if(estadosFinales.includes(status)) return false;
+  const estadosFinales = ["concluida", "cancelada", "rechazada"];
+  if (estadosFinales.includes(status)) return false;
 
   const ahora = new Date();
   const fechaCambio = new Date(fechaCambioStatus);
   const diferencia = ahora - fechaCambio;
   const horas48 = 48 * 60 * 60 * 1000;
 
-  return diferencia > horas48
+  return diferencia > horas48;
 };
