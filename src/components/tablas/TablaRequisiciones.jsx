@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { FaTrash, FaPencilAlt, FaExclamationTriangle } from "react-icons/fa";
+import { FaExclamationTriangle, FaPencilAlt, FaTrash } from "react-icons/fa";
+import { FiArrowLeft, FiArrowRight, FiFileText } from "react-icons/fi";
 import Swal from "sweetalert2";
 import { capitalizeWords, esRequisicionInactiva } from "../../helpers/FuncionesHelpers";
 
-// Funciones helper para formatear fecha y hora
 const formatDate = (fechaOriginal) => {
   const dateTime =
     fechaOriginal instanceof Date ? fechaOriginal : new Date(fechaOriginal);
@@ -35,12 +35,9 @@ const TablaRequisiciones = ({
   mostrarColumnasAdmin = false,
 }) => {
   const [pagina, setPagina] = useState(1);
-  const totalPaginas = Math.ceil(data.length / itemsPorPagina);
+  const totalPaginas = Math.max(1, Math.ceil(data.length / itemsPorPagina));
   const indiceInicio = (pagina - 1) * itemsPorPagina;
-  const registrosActuales = data.slice(
-    indiceInicio,
-    indiceInicio + itemsPorPagina
-  );
+  const registrosActuales = data.slice(indiceInicio, indiceInicio + itemsPorPagina);
 
   const accionPermitida = (item) => {
     if (!item.fechaOriginal) return true;
@@ -55,45 +52,19 @@ const TablaRequisiciones = ({
     return fecha.toLocaleDateString("es-ES");
   };
 
-  const seleccionarPagina = (paginaDestino) => setPagina(paginaDestino);
-  const handlePrevPage = () => {
-    if (pagina > 1) setPagina((prev) => prev - 1);
-  };
-  const handleNextPage = () => {
-    if (pagina < totalPaginas) setPagina((prev) => prev + 1);
-  };
-
-  // 🔥 NUEVA FUNCIÓN: Generar números de página inteligentes
   const generarNumerosPagina = () => {
     const paginas = [];
-    const maxBotones = 5; // Máximo de botones a mostrar
+    const maxBotones = 5;
 
     if (totalPaginas <= maxBotones) {
-      // Si hay pocas páginas, mostrar todas
-      for (let i = 1; i <= totalPaginas; i++) {
-        paginas.push(i);
-      }
+      for (let i = 1; i <= totalPaginas; i += 1) paginas.push(i);
     } else {
-      // Siempre mostrar primera página
       paginas.push(1);
-
-      if (pagina > 3) {
-        paginas.push("...");
-      }
-
-      // Páginas alrededor de la actual
+      if (pagina > 3) paginas.push("...");
       const inicio = Math.max(2, pagina - 1);
       const fin = Math.min(totalPaginas - 1, pagina + 1);
-
-      for (let i = inicio; i <= fin; i++) {
-        paginas.push(i);
-      }
-
-      if (pagina < totalPaginas - 2) {
-        paginas.push("...");
-      }
-
-      // Siempre mostrar última página
+      for (let i = inicio; i <= fin; i += 1) paginas.push(i);
+      if (pagina < totalPaginas - 2) paginas.push("...");
       paginas.push(totalPaginas);
     }
 
@@ -103,186 +74,173 @@ const TablaRequisiciones = ({
   const colorStatus = (status) => {
     switch (status) {
       case "creada":
-        return "bg-gray-200 text-gray-800";
-      case "cotizando":
-        return "bg-blue-200 text-blue-800";
-      case "aprobada":
-        return "bg-green-400 text-green-800";
-      case "esperando autorizacion":
-        return "bg-yellow-200 text-yellow-800";
-      case "autorizada":
-        return "bg-cyan-200 text-cyan-800";
+        return "border-gray-200 bg-gray-200 text-gray-800";
       case "rechazada":
-        return "bg-red-400 text-red-800";
+        return "border-red-400 bg-red-400 text-red-900";
+      case "aprobada":
+        return "border-green-400 bg-green-400 text-green-900";
+      case "cotizando":
+        return "border-blue-200 bg-blue-200 text-blue-800";
+      case "esperando autorizacion":
+        return "border-yellow-200 bg-yellow-200 text-yellow-800";
+      case "autorizada":
+        return "border-cyan-200 bg-cyan-200 text-cyan-800";
       case "proceso de pago":
-        return "bg-pink-200 text-pink-800";
+        return "border-pink-200 bg-pink-200 text-pink-800";
+      case "proveedor preparando envio":
       case "proveedor preparando envío":
-        return "bg-indigo-200 text-indigo-800";
+      case "proveedor preparando envÃ­o":
+      case "proveedor preparando envÃƒÂ­o":
+        return "border-indigo-200 bg-indigo-200 text-indigo-800";
       case "liberacion aduanal":
-        return "bg-purple-200 text-purple-800";
+        return "border-purple-200 bg-purple-200 text-purple-800";
       case "proceso de entrega":
-        return "bg-orange-200 text-orange-800";
+        return "border-orange-200 bg-orange-200 text-orange-800";
       case "entregada parcial":
-        return "bg-teal-200 text-teal-800";
+        return "border-teal-200 bg-teal-200 text-teal-800";
       case "concluida":
-        return "bg-green-200 text-green-800";
+        return "border-green-200 bg-green-200 text-green-800";
       case "cancelada":
-        return "bg-red-200 text-red-800";
+        return "border-red-200 bg-red-200 text-red-800";
       default:
-        return "bg-gray-200 text-gray-800";
+        return "border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]";
     }
   };
 
   const handleEditar = (item, e) => {
     e.stopPropagation();
-    if (item.status !== "creada") {
+    if (item.status !== "creada" || !accionPermitida(item)) {
       Swal.fire({
         title: "No permitido",
-        html: `No puedes editar esta requisición porque su status ya cambió o pasó más de una hora.<br>
-        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelación.</span>`,
+        html: `No puedes editar esta requisicion porque su status ya cambio o paso mas de una hora.<br>
+        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelacion.</span>`,
         icon: "warning",
       });
       return;
     }
-    if (!accionPermitida(item)) {
-      Swal.fire({
-        title: "Tiempo agotado",
-        html: `No puedes editar esta requisición porque su status ya cambió o pasó más de una hora.<br>
-        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelación.</span>`,
-        icon: "warning",
-      });
-      return;
-    }
-    if (onEditarClick) {
-      onEditarClick(item, e);
-    }
+    onEditarClick && onEditarClick(item, e);
   };
 
   const handleEliminar = (item, e) => {
     e.stopPropagation();
-    if (item.status !== "creada") {
+    if (item.status !== "creada" || !accionPermitida(item)) {
       Swal.fire({
         title: "No permitido",
-        html: `No puedes eliminar esta requisición porque su status ya cambió o pasó más de una hora.<br>
-        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelación.</span>`,
+        html: `No puedes eliminar esta requisicion porque su status ya cambio o paso mas de una hora.<br>
+        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelacion.</span>`,
         icon: "warning",
       });
       return;
     }
-    if (!accionPermitida(item)) {
-      Swal.fire({
-        title: "Tiempo agotado",
-        html: `No puedes editar esta requisición porque su status ya cambió o pasó más de una hora.<br>
-        <span style="color:red;">Favor de enviar correo a compras para solicitar su cancelación.</span>`,
-        icon: "warning",
-      });
-      return;
-    }
-    if (onEliminarClick) {
-      onEliminarClick(item);
-    }
+    onEliminarClick && onEliminarClick(item);
   };
 
   return (
-    <div>
-      <div className="overflow-x-auto shadow-md rounded-xl border border-gray-200">
+    <div className="bg-white">
+      <div className="border-b border-[#E2E8F0] px-6 py-5">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-[#334155]">
+              Requisiciones registradas
+            </h2>
+            <p className="text-sm text-[#64748B]">
+              Listado de requisiciones filtradas.
+            </p>
+          </div>
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
+            <FiFileText className="h-3.5 w-3.5" />
+            {data.length} registros
+          </span>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
         <table className="min-w-full whitespace-nowrap">
-          <thead className="text-[14px] 2xl:text-[16px] bg-blue-500 text-white">
-            <tr className="border-b border-gray-200">
-              <th className="px-4 py-2 text-left">Folio</th>
-              <th className="px-4 py-2 text-left">Fecha</th>
-              <th className="px-4 py-2 text-left">Solicitante</th>
-              <th className="px-4 py-2 text-left">Área</th>
-              <th className="px-4 py-2 text-left">Comprador</th>
-              <th className="px-4 py-2 text-left">Prioridad</th>
+          <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-xs uppercase tracking-wide text-[#64748B]">
+            <tr>
+              <th className="px-6 py-4 text-left font-semibold">Folio</th>
+              <th className="px-6 py-4 text-left font-semibold">Fecha</th>
+              <th className="px-6 py-4 text-left font-semibold">Solicitante</th>
+              <th className="px-6 py-4 text-left font-semibold">Area</th>
+              <th className="px-6 py-4 text-left font-semibold">Comprador</th>
+              <th className="px-6 py-4 text-left font-semibold">Prioridad</th>
               {mostrarColumnasAdmin && (
                 <>
-                  <th className="px-4 py-2 text-left">Monto</th>
-                  <th className="px-4 py-2 text-left">ETA</th>
+                  <th className="px-6 py-4 text-left font-semibold">Monto</th>
+                  <th className="px-6 py-4 text-left font-semibold">ETA</th>
                 </>
               )}
-              <th className="px-4 py-2 text-left">Status</th>
-              {mostrarAcciones && <th className="px-4 py-2"></th>}
+              <th className="px-6 py-4 text-left font-semibold">Status</th>
+              {mostrarAcciones && <th className="px-6 py-4" />}
             </tr>
           </thead>
-          <tbody className="font-normal text-gray-700 text-[14px] 2xl:text-[16px]">
+
+          <tbody className="divide-y divide-[#E2E8F0] text-sm text-[#334155]">
             {registrosActuales.map((item, index) => (
               <tr
                 key={index}
-                className="hover:bg-blue-50 border-b border-gray-200 cursor-pointer"
+                className="cursor-pointer bg-white transition hover:bg-[#F8FAFC]"
                 onClick={() => onRowClick && onRowClick(item)}
               >
-                <td className="px-4 py-4">
-                  <div className="flex items-center gap-2">
-                    {mostrarNotificacion && esRequisicionInactiva(item.fechaCambioStatus, item.status) && (
-                      <FaExclamationTriangle
-                        className="text-yellow-500 text-lg"
-                        title="Más de 48 horas sin actividad"
-                      />
-                    )}
-                    {mostrarNotificacion && item.status === "creada" && (
-                      <p className="bg-red-600 text-white px-[5.5px] py-[1.5px] text-xs rounded-full font-semibold">
-                        new
-                      </p>
-                    )}
-                    <span className="inline-block align-middle">
-                      {item.folio}
-                    </span>
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#2563EB]">
+                      <FiFileText className="h-5 w-5" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {mostrarNotificacion &&
+                        esRequisicionInactiva(item.fechaCambioStatus, item.status) && (
+                          <FaExclamationTriangle
+                            className="text-amber-500"
+                            title="Mas de 48 horas sin actividad"
+                          />
+                        )}
+                      {mostrarNotificacion && item.status === "creada" && (
+                        <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+                          new
+                        </span>
+                      )}
+                      <span className="font-semibold text-[#334155]">{item.folio}</span>
+                    </div>
                   </div>
                 </td>
-                <td className="px-4 py-4">
-                  <div>
-                    <span>{formatDate(item.fechaOriginal)}</span>
-                    <br />
-                    <span className="text-xs text-gray-500">
-                      {formatTime(item.fechaOriginal)}
-                    </span>
-                  </div>
+
+                <td className="px-6 py-5">
+                  <p className="font-medium text-[#334155]">{formatDate(item.fechaOriginal)}</p>
+                  <p className="text-xs text-[#64748B]">{formatTime(item.fechaOriginal)}</p>
                 </td>
-                <td className="px-4 py-4">
-                  {capitalizeWords(item.solicitante)}
+
+                <td className="px-6 py-5">{capitalizeWords(item.solicitante)}</td>
+                <td className="px-6 py-5">{capitalizeWords(item.area)}</td>
+                <td className="px-6 py-5">
+                  {item.comprador ? capitalizeWords(item.comprador) : "Esperando comprador"}
                 </td>
-                <td className="px-4 py-4">{capitalizeWords(item.area)}</td>
-                <td className="px-4 py-4">
-                  {item.comprador
-                    ? capitalizeWords(item.comprador)
-                    : "Esperando Comprador"}
-                </td>
-                <td className="px-4 py-4">{capitalizeWords(item.prioridad)}</td>
+                <td className="px-6 py-5">{capitalizeWords(item.prioridad)}</td>
+
                 {mostrarColumnasAdmin && (
                   <>
-                    <td className="px-4 py-4">
-                      <span className="text-sm">
-                        {item.monto || (
-                          <span className="italic text-gray-400">No asignado</span>
-                        )}
-                      </span>
+                    <td className="px-6 py-5">
+                      {item.monto || <span className="italic text-[#64748B]">No asignado</span>}
                     </td>
-                    <td className="px-4 py-4">
-                      <span className="text-sm">
-                        {formatearETA(item.eta)}
-                      </span>
-                    </td>
+                    <td className="px-6 py-5">{formatearETA(item.eta)}</td>
                   </>
                 )}
-                <td className="px-4 py-4">
-                  <span
-                    className={`inline-block px-3 py-1 rounded-xl text-sm font-medium ${colorStatus(
-                      item.status
-                    )}`}
-                  >
+
+                <td className="px-6 py-5">
+                  <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${colorStatus(item.status)}`}>
                     {capitalizeWords(item.status)}
                   </span>
                 </td>
+
                 {mostrarAcciones && (
-                  <td className="px-4 py-4">
-                    <div className="flex space-x-6">
+                  <td className="px-6 py-5">
+                    <div className="flex justify-end gap-3">
                       <FaTrash
-                        className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                        className="cursor-pointer text-[#64748B] transition-colors hover:text-red-500"
                         onClick={(e) => handleEliminar(item, e)}
                       />
                       <FaPencilAlt
-                        className="text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
+                        className="cursor-pointer text-[#64748B] transition-colors hover:text-[#2563EB]"
                         onClick={(e) => handleEditar(item, e)}
                       />
                     </div>
@@ -290,14 +248,15 @@ const TablaRequisiciones = ({
                 )}
               </tr>
             ))}
+
             {registrosActuales.length === 0 && (
               <tr>
-                <td 
-                  className="px-4 py-4" 
+                <td
+                  className="px-6 py-12 text-center text-[#64748B]"
                   colSpan={
-                    mostrarAcciones 
-                      ? (mostrarColumnasAdmin ? "10" : "8") 
-                      : (mostrarColumnasAdmin ? "9" : "7")
+                    mostrarAcciones
+                      ? mostrarColumnasAdmin ? 10 : 8
+                      : mostrarColumnasAdmin ? 9 : 7
                   }
                 >
                   No se encontraron registros.
@@ -307,52 +266,57 @@ const TablaRequisiciones = ({
           </tbody>
         </table>
       </div>
+
       {totalPaginas > 1 && (
-        <div className="flex justify-between items-center mt-4">
-          <div className="text-sm text-gray-700">
-            {indiceInicio + 1} -{" "}
-            {Math.min(indiceInicio + itemsPorPagina, data.length)} de{" "}
-            {data.length} registros
-          </div>
-          <div className="flex space-x-2">
+        <div className="flex flex-col gap-3 border-t border-[#E2E8F0] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-[#64748B]">
+            Mostrando <span className="font-semibold text-[#334155]">{indiceInicio + 1}</span>{" "}
+            a <span className="font-semibold text-[#334155]">{Math.min(indiceInicio + itemsPorPagina, data.length)}</span>{" "}
+            de <span className="font-semibold text-[#334155]">{data.length}</span> registros
+          </p>
+
+          <div className="flex items-center gap-2">
             <button
-              onClick={handlePrevPage}
-              className="px-3 py-1 rounded border border-gray-300 disabled:opacity-50"
+              type="button"
+              onClick={() => setPagina((prev) => Math.max(1, prev - 1))}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-3 text-sm font-semibold text-[#64748B] transition hover:border-[#DBEAFE] hover:bg-[#DBEAFE]/45 hover:text-[#1E40AF] disabled:cursor-not-allowed disabled:opacity-50"
               disabled={pagina === 1}
             >
+              <FiArrowLeft className="h-4 w-4" />
               Anterior
             </button>
-            {generarNumerosPagina().map((numero, index) => {
-              if (numero === "...") {
-                return (
-                  <span
-                    key={`dots-${index}`}
-                    className="px-3 py-1 text-gray-500"
-                  >
+
+            <div className="hidden items-center gap-1 sm:flex">
+              {generarNumerosPagina().map((numero, index) =>
+                numero === "..." ? (
+                  <span key={`dots-${index}`} className="px-3 py-1 text-[#64748B]">
                     ...
                   </span>
-                );
-              }
-              return (
-                <button
-                  key={numero}
-                  onClick={() => seleccionarPagina(numero)}
-                  className={`px-3 py-1 rounded border border-gray-300 ${
-                    pagina === numero
-                      ? "bg-blue-500 text-white"
-                      : "bg-white text-gray-700"
-                  }`}
-                >
-                  {numero}
-                </button>
-              );
-            })}
+                ) : (
+                  <button
+                    key={numero}
+                    type="button"
+                    onClick={() => setPagina(numero)}
+                    className={`h-9 min-w-9 rounded-lg border px-3 text-sm font-semibold transition ${
+                      pagina === numero
+                        ? "border-[#2563EB] bg-[#2563EB] text-white"
+                        : "border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#DBEAFE] hover:bg-[#DBEAFE]/45 hover:text-[#1E40AF]"
+                    }`}
+                  >
+                    {numero}
+                  </button>
+                )
+              )}
+            </div>
+
             <button
-              onClick={handleNextPage}
-              className="px-3 py-1 rounded border border-gray-300 disabled:opacity-50"
+              type="button"
+              onClick={() => setPagina((prev) => Math.min(totalPaginas, prev + 1))}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-3 text-sm font-semibold text-[#64748B] transition hover:border-[#DBEAFE] hover:bg-[#DBEAFE]/45 hover:text-[#1E40AF] disabled:cursor-not-allowed disabled:opacity-50"
               disabled={pagina === totalPaginas}
             >
               Siguiente
+              <FiArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>

@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import Select from 'react-select';
-import { FiSearch } from 'react-icons/fi';
-import TablaRequisiciones from '../../components/tablas/TablaRequisiciones';
-import TablaRequisicionesMobile from '../../components/tablas/TablaRequisicionesMobile';
-import ModalAdminDetalleRequisicion from '../../components/modales/ModalAdminDetalleRequisicion';
-import ResumenRequisiciones from '../../components/ResumenRequisiciones';
-import useTodasRequisiciones from '../../hooks/useTodasRequisiciones';
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import Select from "react-select";
+import { FiList, FiSearch } from "react-icons/fi";
+import TablaRequisiciones from "../../components/tablas/TablaRequisiciones";
+import TablaRequisicionesMobile from "../../components/tablas/TablaRequisicionesMobile";
+import ModalAdminDetalleRequisicion from "../../components/modales/ModalAdminDetalleRequisicion";
+import ResumenRequisiciones from "../../components/ResumenRequisiciones";
+import useTodasRequisiciones from "../../hooks/useTodasRequisiciones";
 
 const TodasRequisiciones = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [yaProcesoNotificacion, setYaProcesoNotificacion] = useState(false); // Nuevo estado
-  
+  const [yaProcesoNotificacion, setYaProcesoNotificacion] = useState(false);
+  const [filtroStatus, setFiltroStatus] = useState(null);
+
   const {
     datos,
     error,
@@ -33,43 +34,30 @@ const TodasRequisiciones = () => {
     actualizarRequisicion,
   } = useTodasRequisiciones();
 
-  const [filtroStatus, setFiltroStatus] = useState(null);
-
   const handleStatusClick = (status) => {
-    if (status === 'Total General') {
-      setFiltroStatus(null);
-    } else {
-      setFiltroStatus(status);
-    }
+    setFiltroStatus(status === "Total General" ? null : status);
   };
 
-  // MODIFICADO: Efecto para abrir automáticamente una requisición específica
   useEffect(() => {
     const abrirRequisicionId = location.state?.abrirRequisicionId;
-    
+
     if (abrirRequisicionId && datos.length > 0 && !yaProcesoNotificacion) {
-      // Buscar la requisición en los datos
-      const requisicionEncontrada = datos.find(req => req.id === abrirRequisicionId);
-      
+      const requisicionEncontrada = datos.find((req) => req.id === abrirRequisicionId);
+
       if (requisicionEncontrada) {
-        // Marcar que ya procesamos esta notificación
         setYaProcesoNotificacion(true);
-        // Abrir el modal con la requisición encontrada
         handleRowClick(requisicionEncontrada);
-        // Limpiar el state inmediatamente después de procesar
         navigate(location.pathname, { replace: true });
       }
     }
   }, [datos, location.state, yaProcesoNotificacion, handleRowClick, navigate, location.pathname]);
 
-  // Resetear cuando no hay abrirRequisicionId (navegación normal)
   useEffect(() => {
     if (!location.state?.abrirRequisicionId) {
       setYaProcesoNotificacion(false);
     }
   }, [location.state]);
 
-  // SIMPLIFICADO: Función para cerrar el modal
   const handleCloseModal = () => {
     setModalDetalleActivo(false);
     setRequisicionSeleccionada(null);
@@ -79,67 +67,110 @@ const TodasRequisiciones = () => {
     ? datosFiltrados.filter((item) => item.status === filtroStatus)
     : datosFiltrados;
 
+  const selectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: "46px",
+      borderColor: state.isFocused ? "#2563EB" : "#E2E8F0",
+      boxShadow: state.isFocused ? "0 0 0 4px #DBEAFE" : "0 1px 2px rgba(15, 23, 42, 0.05)",
+      borderRadius: "0.5rem",
+      fontSize: "0.875rem",
+      "&:hover": { borderColor: state.isFocused ? "#2563EB" : "#E2E8F0" },
+    }),
+    option: (base, state) => ({
+      ...base,
+      fontSize: "0.875rem",
+      backgroundColor: state.isSelected ? "#2563EB" : state.isFocused ? "#DBEAFE" : "white",
+      color: state.isSelected ? "white" : "#334155",
+    }),
+  };
+
   return (
-    <div className="p-6">
-      {error && <p className="text-red-500">{error}</p>}
+    <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8 2xl:max-w-[1600px]">
+      <section className="mb-6 overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-sm">
+        <div className="border-b border-[#E2E8F0] bg-white px-5 py-5 sm:px-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
+                <FiList className="h-3.5 w-3.5" />
+                Administracion
+              </div>
+              <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">
+                Todas las requisiciones
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">
+                Supervisa, consulta y actualiza el flujo completo de requisiciones.
+              </p>
+            </div>
 
-      <ResumenRequisiciones
-        detallesDeStatus={detallesDeStatus}
-        agrupacionStatus={agrupacionStatus}
-        titulo="Resumen de todas las Requisiciones"
-        onClickStatus={handleStatusClick}
-        statusSeleccionado={filtroStatus}
-      />
-
-      <div className="flex flex-col lg:flex-row items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-500 mb-2 lg:mb-0 uppercase">
-          Todas las Requisiciones
-        </h2>
-        <div className="flex flex-col lg:flex-row items-stretch gap-4 w-full lg:w-auto">
-          <div className="w-full lg:w-48">
-            <Select
-              options={opciones}
-              value={opcionSeleccionada}
-              onChange={handleSelectChange}
-              className="text-sm"
-              classNamePrefix="react-select"
-            />
-          </div>
-          <div className="relative w-full lg:w-auto">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-              <FiSearch />
-            </span>
-            <input
-              type="text"
-              placeholder="Buscar..."
-              className="w-full border border-gray-300 rounded pl-10 pr-3 py-1.5 bg-gray-100 focus:outline-none focus:border-blue-500"
-              value={busqueda}
-              onChange={handleInputChange}
-            />
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
+              <p className="text-xs text-[#64748B]">Registros visibles</p>
+              <p className="text-2xl font-semibold text-[#334155]">
+                {datosFiltradosConStatus.length}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="hidden md:block">
-        <TablaRequisiciones
-          data={datosFiltradosConStatus}
-          itemsPorPagina={itemsPorPagina}
-          mostrarAcciones={false}
-          onRowClick={handleRowClick}
-          mostrarNotificacion={true}
-          mostrarColumnasAdmin={true}
-        />
-      </div>
+        {error && (
+          <div className="mx-6 mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 sm:mx-7">
+            {error}
+          </div>
+        )}
 
-      <div className="block md:hidden">
-        <TablaRequisicionesMobile
-          data={datosFiltradosConStatus}
-          itemsPorPagina={itemsPorPagina}
-          mostrarAcciones={false}
-          onRowClick={handleRowClick}
-          mostrarNotificacion={true}
-        />
-      </div>
+        <div className="border-b border-[#E2E8F0] p-6 sm:p-7">
+          <ResumenRequisiciones
+            detallesDeStatus={detallesDeStatus}
+            agrupacionStatus={agrupacionStatus}
+            titulo="Resumen de todas las requisiciones"
+            onClickStatus={handleStatusClick}
+            statusSeleccionado={filtroStatus}
+          />
+
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="w-full lg:w-56">
+              <Select
+                options={opciones}
+                value={opcionSeleccionada}
+                onChange={handleSelectChange}
+                styles={selectStyles}
+              />
+            </div>
+
+            <div className="relative w-full lg:max-w-md">
+              <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
+              <input
+                type="text"
+                placeholder="Buscar requisicion..."
+                className="w-full rounded-lg border border-[#E2E8F0] bg-white px-11 py-3 text-sm text-[#0F172A] shadow-sm outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#DBEAFE]"
+                value={busqueda}
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden md:block">
+          <TablaRequisiciones
+            data={datosFiltradosConStatus}
+            itemsPorPagina={itemsPorPagina}
+            mostrarAcciones={false}
+            onRowClick={handleRowClick}
+            mostrarNotificacion={true}
+            mostrarColumnasAdmin={true}
+          />
+        </div>
+
+        <div className="block bg-[#F8FAFC] p-4 md:hidden">
+          <TablaRequisicionesMobile
+            data={datosFiltradosConStatus}
+            itemsPorPagina={itemsPorPagina}
+            mostrarAcciones={false}
+            onRowClick={handleRowClick}
+            mostrarNotificacion={true}
+          />
+        </div>
+      </section>
 
       <ModalAdminDetalleRequisicion
         isOpen={modalDetalleActivo}

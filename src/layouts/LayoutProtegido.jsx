@@ -20,8 +20,8 @@ const LayoutProtegido = () => {
   if (cargando) return "Cargando...";
 
   const SeccionActual = ({ isActive }) =>
-    `flex items-center p-2 rounded-lg transition hover:bg-white/10 ${
-      isActive ? "bg-white/20 text-white font-semibold" : "text-white"
+    `flex items-center p-2 rounded-lg transition hover:bg-[#1E40AF]/70 ${
+      isActive ? "bg-[#1E40AF] text-white font-semibold" : "text-white"
     }`;
 
   const tieneRolSoloAdmin = auth.rol === "admin";
@@ -42,11 +42,11 @@ const LayoutProtegido = () => {
           <aside
             className={`hidden md:flex flex-col transition-all duration-300 ${
               expandido ? "w-72" : "w-20"
-            } bg-blue-900 text-white h-full`}
+            } bg-[#1E3A8A] text-white h-full rounded-r-2xl overflow-hidden`}
           >
             {/* Logo */}
             {expandido && (
-              <div className="flex flex-col items-center justify-center py-3 border-b border-white/20">
+              <div className="flex flex-col items-center justify-center py-3 border-b border-[#3B82F6]/25">
                 <div className="">
                   <img
                     src="/img/logo_real.png"
@@ -55,8 +55,8 @@ const LayoutProtegido = () => {
                   />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-light text-white/90 leading-tight">
-                    Sistema de Gestión de Requisiciones
+                  <p className="text-xs font-medium tracking-wide text-[#DBEAFE]/90 uppercase mb-2">
+                    Sistema de Gestión De Requisiciones
                   </p>
                 </div>
               </div>
@@ -180,7 +180,7 @@ const LayoutProtegido = () => {
             {/* Sección de perfil en el sidebar */}
             {expandido ? (
               <div
-                className="flex items-center justify-between px-4 py-4 border-t border-white/20 cursor-pointer"
+                className="flex items-center justify-between px-4 py-4 border-t border-[#3B82F6]/25 cursor-pointer"
                 onClick={() => setMostrarModal(true)}
               >
                 <div className="flex items-center">
@@ -205,18 +205,18 @@ const LayoutProtegido = () => {
                   }}
                   aria-label="Cerrar menú"
                   title="Cerrar menú"
-                  className="p-2 rounded-full hover:bg-white/10 transition transform duration-300"
+                  className="p-2 rounded-full hover:bg-[#1E40AF]/70 transition transform duration-300"
                 >
                   <RiMenuFoldLine className="text-2xl text-white" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-24 border-t border-white/20">
+              <div className="flex items-center justify-center h-24 border-t border-[#3B82F6]/25">
                 <button
                   onClick={() => setExpandido(true)}
                   aria-label="Abrir menú"
                   title="Abrir menú"
-                  className="p-2 rounded-full hover:bg-white/10 transition transform duration-300"
+                  className="p-2 rounded-full hover:bg-[#1E40AF]/70 transition transform duration-300"
                 >
                   <RiMenuUnfoldLine className="text-2xl text-white" />
                 </button>
@@ -225,13 +225,13 @@ const LayoutProtegido = () => {
           </aside>
           {/* Sidebar versión móvil */}
           <aside
-            className={`md:hidden fixed inset-y-0 left-0 z-50 transition-transform duration-300 bg-blue-900 text-white ${
+            className={`md:hidden fixed inset-y-0 left-0 z-50 transition-transform duration-300 bg-[#1E3A8A] text-white rounded-r-2xl overflow-hidden ${
               mostrarSidebarMovil ? "translate-x-0" : "-translate-x-full"
             }`}
           >
             <div className="flex flex-col h-full">
               {/* Logo */}
-              <div className="flex items-center justify-center h-16 border-b border-white/20">
+              <div className="flex items-center justify-center h-16 border-b border-[#3B82F6]/25">
                 <img src="/img/logo_real.png" alt="logo" className="w-32 h-10" />
               </div>
               {/* Navegación */}
@@ -359,7 +359,7 @@ const LayoutProtegido = () => {
               </nav>
               {/* Sección de perfil móvil */}
               <div
-                className="flex items-center justify-between px-4 py-4 border-t border-white/20 cursor-pointer"
+                className="flex items-center justify-between px-4 py-4 border-t border-[#3B82F6]/25 cursor-pointer"
                 onClick={() => {
                   setMostrarModal(true);
                   setMostrarSidebarMovil(false);
@@ -387,7 +387,7 @@ const LayoutProtegido = () => {
                   }}
                   aria-label="Cerrar menú"
                   title="Cerrar menú"
-                  className="p-2 rounded-full hover:bg-white/10 transition transform duration-300"
+                  className="p-2 rounded-full hover:bg-[#1E40AF]/70 transition transform duration-300"
                 >
                   <RiMenuFoldLine className="text-2xl text-white" />
                 </button>
@@ -400,13 +400,13 @@ const LayoutProtegido = () => {
               onClick={() => setMostrarSidebarMovil(true)}
               aria-label="Abrir menú"
               title="Abrir menú"
-              className="p-2 bg-blue-900 text-white rounded-md shadow-md"
+              className="p-2 bg-[#1E3A8A] text-white rounded-md shadow-md"
             >
               <RiMenuUnfoldLine className="text-2xl text-white" />
             </button>
           </div>
           {/* Contenido principal */}
-          <main className="flex-1 pt-10 lg:p-6 overflow-auto bg-gray-50">
+          <main className="flex-1 pt-10 lg:p-6 overflow-auto bg-[#F8FAFC]">
             <Outlet />
           </main>
           {/* Modal para el perfil */}

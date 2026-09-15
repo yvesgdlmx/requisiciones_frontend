@@ -1,44 +1,58 @@
-import React from 'react';
-import { capitalizeWords } from '../helpers/FuncionesHelpers';
+import React from "react";
+import { capitalizeWords } from "../helpers/FuncionesHelpers";
 
-const ResumenRequisiciones = ({ detallesDeStatus, agrupacionStatus, titulo, onClickStatus, statusSeleccionado }) => {
-  // Creamos un nuevo arreglo que incluye "Total General" al final
+const ResumenRequisiciones = ({
+  detallesDeStatus,
+  agrupacionStatus,
+  titulo,
+  onClickStatus,
+  statusSeleccionado,
+}) => {
   const estadosConTotal = [
     ...detallesDeStatus,
-    { status: 'Total General', color: 'bg-gray-400', textColor: 'text-gray-800' }
+    { status: "Total General", color: "bg-[#DBEAFE]", textColor: "text-[#1E40AF]" },
   ];
+
+  const totalGeneral = Object.values(agrupacionStatus).reduce((a, b) => a + b, 0);
 
   return (
     <div className="mb-6 hidden lg:block">
-      <div className="p-2 rounded-xl bg-gradient-to-r from-blue-50 via-indigo-50 to-sky-50">
-        <div className="bg-white rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-gray-500 mb-4 uppercase">{titulo}</h3>
-          <ul className="grid grid-cols-1 sm:grid-cols-6 gap-4">
-            {estadosConTotal.map((item) => {
-              const isActivo = statusSeleccionado === item.status;
-              return (
-                <li
-                  key={item.status}
-                  className={`flex items-center space-x-3 cursor-pointer p-2 rounded transition 
-                    ${isActivo ? 'bg-blue-100 border border-blue-400 shadow-inner' : 'hover:bg-gray-100'}`}
-                  onClick={() => onClickStatus && onClickStatus(item.status)}
-                >
-                  <div className={`w-6 h-6 ${item.color} rounded-full`} />
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      {item.status === 'Total General' ? 'Total General' : capitalizeWords(item.status)}
-                    </p>
-                    <p className={`text-lg font-bold ${item.textColor}`}>
-                      {item.status === 'Total General'
-                        ? Object.values(agrupacionStatus).reduce((a,b) => a+b, 0)
-                        : agrupacionStatus[item.status] || 0}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-[#334155]">{titulo}</h2>
+          <p className="text-sm text-[#64748B]">Filtra por status desde el resumen.</p>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#E2E8F0] xl:grid-cols-7">
+        {estadosConTotal.map((item) => {
+          const isTotal = item.status === "Total General";
+          const isActivo = isTotal ? !statusSeleccionado : statusSeleccionado === item.status;
+          const total = isTotal ? totalGeneral : agrupacionStatus[item.status] || 0;
+
+          return (
+            <button
+              type="button"
+              key={item.status}
+              className={`bg-white px-4 py-4 text-left transition hover:bg-[#F8FAFC] ${
+                isActivo ? "shadow-inner ring-2 ring-inset ring-[#2563EB]" : ""
+              }`}
+              onClick={() => onClickStatus && onClickStatus(item.status)}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`h-3 w-3 rounded-full ${item.color}`} />
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold uppercase tracking-wide text-[#64748B]">
+                    {isTotal ? "Total" : capitalizeWords(item.status)}
+                  </p>
+                  <p className={`mt-1 text-2xl font-semibold ${item.textColor}`}>
+                    {total}
+                  </p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

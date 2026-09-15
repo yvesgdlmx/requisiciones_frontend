@@ -1,4 +1,18 @@
 import React from "react";
+import {
+  FiCalendar,
+  FiCheckCircle,
+  FiDatabase,
+  FiDownload,
+  FiFileText,
+  FiFilter,
+  FiHash,
+  FiPackage,
+  FiPaperclip,
+  FiRefreshCw,
+  FiSearch,
+  FiTruck,
+} from "react-icons/fi";
 import useExportarRequisiciones from "../../hooks/useExportarRequisiciones";
 import { exportarRequisicionesAExcel } from "../../services/excelService";
 
@@ -23,6 +37,7 @@ const ExportarRequisiciones = () => {
   } = useExportarRequisiciones();
 
   const puedeExportar = requisicionesFiltradas.length > 0;
+  const fechaDescarga = new Date();
 
   const formatearFechaMexico = (fecha) => {
     if (!fecha) return "Sin fecha";
@@ -35,44 +50,10 @@ const ExportarRequisiciones = () => {
     });
   };
 
-  const obtenerSolicitante = (req) => {
-    if (req.usuario) {
-      return `${req.usuario.nombre || ""} ${req.usuario.apellido || ""}`.trim();
-    }
-
-    return req.solicitante || "Sin solicitante";
-  };
-
   const capitalizar = (texto) => {
     if (!texto) return "Sin dato";
     return texto.charAt(0).toUpperCase() + texto.slice(1);
   };
-
-  const getStatusColor = (status) => {
-    const colores = {
-      creada: "bg-gray-100 text-gray-800",
-      rechazada: "bg-red-100 text-red-800",
-      cotizando: "bg-blue-100 text-blue-800",
-      aprobada: "bg-green-100 text-green-800",
-      "esperando autorizacion": "bg-yellow-100 text-yellow-800",
-      autorizada: "bg-cyan-100 text-cyan-800",
-      "proceso de pago": "bg-pink-100 text-pink-800",
-      "proveedor preparando envío": "bg-indigo-100 text-indigo-800",
-      "liberacion aduanal": "bg-purple-100 text-purple-800",
-      "proceso de entrega": "bg-orange-100 text-orange-800",
-      "entregada parcial": "bg-teal-100 text-teal-800",
-      concluida: "bg-green-200 text-green-900",
-      cancelada: "bg-red-200 text-red-900",
-    };
-
-    return colores[status] || "bg-gray-100 text-gray-800";
-  };
-
-  const resumenStatus = requisicionesFiltradas.reduce((acc, req) => {
-    const status = req.status || "sin status";
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {});
 
   const totalArticulos = requisicionesFiltradas.reduce((total, req) => {
     return total + (Array.isArray(req.articulos) ? req.articulos.length : 0);
@@ -127,100 +108,204 @@ const ExportarRequisiciones = () => {
     return statusFiltro ? `Status: ${capitalizar(statusFiltro)}` : "Sin filtro";
   };
 
+  const campoBase =
+    "w-full rounded-lg border border-[#E2E8F0] bg-white px-3.5 py-2.5 text-sm text-[#0F172A] shadow-sm outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#DBEAFE]";
+
+  const metricasPrincipales = [
+    {
+      label: "Disponibles",
+      value: requisiciones.length,
+      icon: FiDatabase,
+      color: "text-[#0F172A]",
+    },
+    {
+      label: "A exportar",
+      value: requisicionesFiltradas.length,
+      icon: FiCheckCircle,
+      color: "text-emerald-700",
+    },
+    {
+      label: "Articulos",
+      value: totalArticulos,
+      icon: FiPackage,
+      color: "text-[#2563EB]",
+    },
+    {
+      label: "Modo",
+      value: capitalizar(modoExportacion),
+      icon: FiFilter,
+      color: "text-[#0F172A]",
+    },
+  ];
+
+  const detalleArchivo = [
+    {
+      label: "Nombre estimado",
+      value: `${getNombreArchivo()}-${fechaDescarga.toISOString().split("T")[0]}.xlsx`,
+    },
+    {
+      label: "Filtro aplicado",
+      value: getFiltroAplicado(),
+    },
+    {
+      label: "Hojas incluidas",
+      value: "Requisiciones y Articulos",
+    },
+    {
+      label: "Fecha de descarga",
+      value: formatearFechaMexico(fechaDescarga),
+    },
+  ];
+
+  const metricasArchivo = [
+    {
+      label: "Con monto",
+      value: totalConMonto,
+      icon: FiCheckCircle,
+      className: "border-[#DBEAFE] bg-[#DBEAFE]/55 text-[#1E40AF]",
+    },
+    {
+      label: "Con proveedor",
+      value: totalConProveedor,
+      icon: FiTruck,
+      className: "border-emerald-100 bg-emerald-50 text-emerald-800",
+    },
+    {
+      label: "Internacionales",
+      value: totalInternacionales,
+      icon: FiDatabase,
+      className: "border-violet-100 bg-violet-50 text-violet-800",
+    },
+    {
+      label: "Con archivos",
+      value: totalConArchivos,
+      icon: FiPaperclip,
+      className: "border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]",
+    },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold mb-2 text-gray-500 text-center">
-        Exportar Requisiciones
-      </h2>
-
-      <p className="text-center mb-6 text-gray-500">
-        Descarga requisiciones en Excel por rango de fechas, folio o listado completo
-      </p>
-
-      <div className="bg-white border border-gray-200 rounded-xl shadow-md p-5 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Tipo de descarga
-            </label>
-            <select
-              value={modoExportacion}
-              onChange={(e) => setModoExportacion(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="todas">Todas</option>
-              <option value="rango">Por rango de fecha</option>
-              <option value="folio">Por folio</option>
-            </select>
-          </div>
-
-          {modoExportacion === "rango" && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Fecha inicio
-                </label>
-                <input
-                  type="date"
-                  value={fechaInicio}
-                  onChange={(e) => setFechaInicio(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Fecha fin
-                </label>
-                <input
-                  type="date"
-                  value={fechaFin}
-                  onChange={(e) => setFechaFin(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </>
-          )}
-
-          {modoExportacion === "folio" && (
+    <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8 2xl:max-w-[1600px]">
+      <section className="mb-6 overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-sm">
+        <div className="border-b border-[#E2E8F0] bg-white px-5 py-5 sm:px-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Folio
-              </label>
-              <input
-                type="text"
-                value={folio}
-                onChange={(e) => setFolio(e.target.value)}
-                placeholder="Ej. C26-00001"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
+                <FiFileText className="h-3.5 w-3.5" />
+                Reporteria
+              </div>
+              <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">
+                Exportar requisiciones
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">
+                Genera archivos Excel por rango de fechas, folio, status o listado completo.
+              </p>
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Status
-            </label>
-            <select
-              value={statusFiltro}
-              onChange={(e) => setStatusFiltro(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Todos los status</option>
-              {statusDisponibles.map((status) => (
-                <option key={status} value={status}>
-                  {capitalizar(status)}
-                </option>
-              ))}
-            </select>
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center">
+              <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
+                <p className="text-xs text-[#64748B]">Registros listos</p>
+                <p className="text-2xl font-semibold text-[#0F172A]">{requisicionesFiltradas.length}</p>
+              </div>
+              <div className="rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
+                <p className="text-xs text-[#64748B]">Formato</p>
+                <p className="text-2xl font-semibold text-[#334155]">Excel</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 p-8 sm:p-9 xl:grid-cols-[1fr_auto] xl:items-end">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div>
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <FiDownload className="h-4 w-4 text-slate-400" />
+                Tipo de descarga
+              </label>
+              <select
+                value={modoExportacion}
+                onChange={(e) => setModoExportacion(e.target.value)}
+                className={campoBase}
+              >
+                <option value="todas">Todas</option>
+                <option value="rango">Por rango de fecha</option>
+                <option value="folio">Por folio</option>
+              </select>
+            </div>
+
+            {modoExportacion === "rango" && (
+              <>
+                <div>
+                  <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <FiCalendar className="h-4 w-4 text-slate-400" />
+                    Fecha inicio
+                  </label>
+                  <input
+                    type="date"
+                    value={fechaInicio}
+                    onChange={(e) => setFechaInicio(e.target.value)}
+                    className={campoBase}
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <FiCalendar className="h-4 w-4 text-slate-400" />
+                    Fecha fin
+                  </label>
+                  <input
+                    type="date"
+                    value={fechaFin}
+                    onChange={(e) => setFechaFin(e.target.value)}
+                    className={campoBase}
+                  />
+                </div>
+              </>
+            )}
+
+            {modoExportacion === "folio" && (
+              <div>
+                <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <FiHash className="h-4 w-4 text-slate-400" />
+                  Folio
+                </label>
+                <input
+                  type="text"
+                  value={folio}
+                  onChange={(e) => setFolio(e.target.value)}
+                  placeholder="Ej. C26-00001"
+                  className={campoBase}
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <FiFilter className="h-4 w-4 text-slate-400" />
+                Status
+              </label>
+              <select
+                value={statusFiltro}
+                onChange={(e) => setStatusFiltro(e.target.value)}
+                className={campoBase}
+              >
+                <option value="">Todos los status</option>
+                {statusDisponibles.map((status) => (
+                  <option key={status} value={status}>
+                    {capitalizar(status)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-3 sm:flex-row xl:min-w-[270px]">
             <button
               type="button"
               onClick={obtenerRequisiciones}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded transition-colors shadow"
+              className="inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3.5 text-sm font-semibold text-[#64748B] shadow-sm transition hover:border-[#DBEAFE] hover:bg-[#DBEAFE]/45 hover:text-[#1E40AF]"
             >
+              <FiRefreshCw className="h-4 w-4" />
               Actualizar
             </button>
 
@@ -228,131 +313,138 @@ const ExportarRequisiciones = () => {
               type="button"
               onClick={handleExportar}
               disabled={!puedeExportar}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold px-5 py-2 rounded transition-colors shadow"
+              className="inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-lg bg-[#2563EB] px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3B82F6] disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
             >
+              <FiDownload className="h-4 w-4" />
               Descargar
             </button>
           </div>
         </div>
-      </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
-          {error}
-        </div>
-      )}
-
-      {cargando ? (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-5">
-          <p className="text-center text-gray-500 py-8">
-            Cargando requisiciones...
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-md">
-              <p className="text-sm text-gray-500">Total disponibles</p>
-              <p className="text-2xl font-bold text-gray-700">
-                {requisiciones.length}
-              </p>
+        {cargando ? (
+          <div className="border-t border-[#E2E8F0] bg-[#F8FAFC] p-10 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#DBEAFE] text-[#2563EB]">
+              <FiRefreshCw className="h-5 w-5 animate-spin" />
             </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-md">
-              <p className="text-sm text-gray-500">Registros a exportar</p>
-              <p className="text-2xl font-bold text-green-700">
-                {requisicionesFiltradas.length}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-md">
-              <p className="text-sm text-gray-500">Articulos incluidos</p>
-              <p className="text-2xl font-bold text-blue-700">
-                {totalArticulos}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-md">
-              <p className="text-sm text-gray-500">Modo</p>
-              <p className="text-xl font-bold text-blue-700 capitalize">
-                {modoExportacion}
-              </p>
-            </div>
+            <p className="font-semibold text-slate-700">Cargando requisiciones...</p>
+            <p className="mt-1 text-sm text-[#64748B]">Actualizando la informacion para exportar.</p>
           </div>
+        ) : (
+          <div className="border-t border-[#E2E8F0] bg-[#F8FAFC]">
+            <div className="grid grid-cols-1 gap-px border-b border-[#E2E8F0] bg-[#E2E8F0] sm:grid-cols-2 xl:grid-cols-4">
+              {metricasPrincipales.map((metrica) => {
+                const Icono = metrica.icon;
 
-          <div className="space-y-6">
-            <div className="space-y-6">
-              <div className="bg-white border border-gray-200 rounded-xl shadow-md p-5">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                  Resumen del archivo
-                </h3>
+                return (
+                  <div
+                    key={metrica.label}
+                    className="flex items-center justify-between gap-3 bg-white px-6 py-7"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-[#64748B]">{metrica.label}</p>
+                      <p className={`mt-1 text-2xl font-semibold ${metrica.color}`}>
+                        {metrica.value}
+                      </p>
+                    </div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#2563EB]">
+                      <Icono className="h-5 w-5" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <p className="text-xs uppercase font-semibold text-gray-500 mb-1">
-                      Nombre estimado
-                    </p>
-                    <p className="text-sm font-semibold text-gray-700 break-all">
-                      {getNombreArchivo()}-{new Date().toISOString().split("T")[0]}.xlsx
-                    </p>
+            <div className="p-8">
+              <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-[#334155]">
+                    Resumen del archivo
+                  </h2>
+                  <p className="mt-1 text-sm text-[#64748B]">
+                    Vista previa de los datos que se incluiran en la descarga.
+                  </p>
+                </div>
+                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                  <FiCheckCircle className="h-3.5 w-3.5" />
+                  {puedeExportar ? "Listo para exportar" : "Sin resultados"}
+                </span>
+              </div>
+
+              <div className="grid overflow-hidden rounded-lg border border-[#E2E8F0] bg-white lg:grid-cols-[1.35fr_.65fr]">
+                <div className="border-b border-[#E2E8F0] p-6 lg:border-b-0 lg:border-r">
+                  <div className="mb-5 flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#2563EB]">
+                      <FiFileText className="h-6 w-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">
+                        Nombre estimado
+                      </p>
+                      <p className="mt-1 break-words text-base font-semibold text-[#334155]">
+                        {detalleArchivo[0].value}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <p className="text-xs uppercase font-semibold text-gray-500 mb-1">
-                      Filtro aplicado
-                    </p>
-                    <p className="text-sm font-semibold text-gray-700">
-                      {getFiltroAplicado()}
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <p className="text-xs uppercase font-semibold text-gray-500 mb-1">
-                      Hojas incluidas
-                    </p>
-                    <p className="text-sm font-semibold text-gray-700">
-                      Requisiciones y Articulos
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <p className="text-xs uppercase font-semibold text-gray-500 mb-1">
-                      Fecha de descarga
-                    </p>
-                    <p className="text-sm font-semibold text-gray-700">
-                      {formatearFechaMexico(new Date())}
-                    </p>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {detalleArchivo.slice(1).map((item) => (
+                      <div
+                        key={item.label}
+                        className="rounded-lg bg-[#F8FAFC] px-4 py-3"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">
+                          {item.label}
+                        </p>
+                        <p className="mt-1 break-words text-sm font-semibold text-[#334155]">
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="border border-blue-100 bg-blue-50 rounded-lg p-3">
-                    <p className="text-xs text-blue-700">Con monto</p>
-                    <p className="text-xl font-bold text-blue-800">{totalConMonto}</p>
-                  </div>
-                  <div className="border border-green-100 bg-green-50 rounded-lg p-3">
-                    <p className="text-xs text-green-700">Con proveedor</p>
-                    <p className="text-xl font-bold text-green-800">{totalConProveedor}</p>
-                  </div>
-                  <div className="border border-purple-100 bg-purple-50 rounded-lg p-3">
-                    <p className="text-xs text-purple-700">Internacionales</p>
-                    <p className="text-xl font-bold text-purple-800">{totalInternacionales}</p>
-                  </div>
-                  <div className="border border-gray-200 bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-600">Con archivos</p>
-                    <p className="text-xl font-bold text-gray-700">{totalConArchivos}</p>
-                  </div>
+                <div className="divide-y divide-[#E2E8F0] bg-[#F8FAFC]">
+                  {metricasArchivo.map((metrica) => {
+                    const Icono = metrica.icon;
+
+                    return (
+                      <div
+                        key={metrica.label}
+                        className="flex items-center justify-between gap-4 px-5 py-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={`flex h-9 w-9 items-center justify-center rounded-lg border ${metrica.className}`}>
+                            <Icono className="h-4 w-4" />
+                          </span>
+                          <p className="text-sm font-semibold text-[#334155]">
+                            {metrica.label}
+                          </p>
+                        </div>
+                        <p className="text-xl font-semibold text-[#334155]">{metrica.value}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
+              {!puedeExportar && (
+                <div className="mt-5 rounded-lg border border-dashed border-[#E2E8F0] bg-white px-5 py-8 text-center">
+                  <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-[#F8FAFC] text-[#64748B]">
+                    <FiSearch className="h-5 w-5" />
+                  </div>
+                  <p className="font-semibold text-[#64748B]">
+                    No hay requisiciones para exportar con los filtros seleccionados.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
+        )}
+      </section>
 
-          {!puedeExportar && (
-            <p className="text-center text-gray-400">
-              No hay requisiciones para exportar con los filtros seleccionados.
-            </p>
-          )}
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          {error}
         </div>
       )}
     </div>
