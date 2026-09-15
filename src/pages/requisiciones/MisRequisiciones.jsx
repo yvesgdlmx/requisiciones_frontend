@@ -9,6 +9,7 @@ import ModalDetalleRequisicion from "../../components/modales/ModalDetalleRequis
 import ModalEditarRequisicion from "../../components/modales/ModalEditarRequisicion";
 import ResumenRequisiciones from "../../components/ResumenRequisiciones";
 import useMisRequisiciones from "../../hooks/useMisRequisiciones";
+import { normalizarStatusRequisicion } from "../../helpers/FuncionesHelpers";
 
 const MisRequisiciones = () => {
   const location = useLocation();
@@ -68,7 +69,9 @@ const MisRequisiciones = () => {
   };
 
   const datosFiltradosConStatus = filtroStatus
-    ? datosFiltrados.filter((item) => item.status === filtroStatus)
+    ? datosFiltrados.filter(
+        (item) => normalizarStatusRequisicion(item.status) === filtroStatus
+      )
     : datosFiltrados;
 
   const selectStyles = {

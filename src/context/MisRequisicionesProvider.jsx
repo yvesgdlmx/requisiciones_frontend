@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import clienteAxios from "../config/clienteAxios";
+import { normalizarStatusRequisicion } from "../helpers/FuncionesHelpers";
 
 const MisRequisicionesContext = createContext();
 
@@ -109,7 +110,8 @@ export const MisRequisicionesProvider = ({ children }) => {
   );
 
   const agrupacionStatus = datosFiltrados.reduce((acc, item) => {
-    acc[item.status] = (acc[item.status] || 0) + 1;
+    const statusNormalizado = normalizarStatusRequisicion(item.status);
+    acc[statusNormalizado] = (acc[statusNormalizado] || 0) + 1;
     return acc;
   }, {});
 

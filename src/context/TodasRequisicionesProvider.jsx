@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import clienteAxios from "../config/clienteAxios";
+import { normalizarStatusRequisicion } from "../helpers/FuncionesHelpers";
 
 const TodasRequisicionesContext = createContext();
 
@@ -98,7 +99,8 @@ export const TodasRequisicionesProvider = ({ children }) => {
 
   // Agrupar por status para el resumen
   const agrupacionStatus = datosFiltrados.reduce((acc, item) => {
-    acc[item.status] = (acc[item.status] || 0) + 1;
+    const statusNormalizado = normalizarStatusRequisicion(item.status);
+    acc[statusNormalizado] = (acc[statusNormalizado] || 0) + 1;
     return acc;
   }, {});
 

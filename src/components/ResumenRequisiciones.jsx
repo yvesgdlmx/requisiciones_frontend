@@ -1,5 +1,8 @@
 import React from "react";
-import { formatearStatusRequisicion } from "../helpers/FuncionesHelpers";
+import {
+  formatearStatusRequisicion,
+  normalizarStatusRequisicion,
+} from "../helpers/FuncionesHelpers";
 
 const ResumenRequisiciones = ({
   detallesDeStatus,
@@ -27,8 +30,9 @@ const ResumenRequisiciones = ({
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#E2E8F0] xl:grid-cols-7">
         {estadosConTotal.map((item) => {
           const isTotal = item.status === "Total General";
-          const isActivo = isTotal ? !statusSeleccionado : statusSeleccionado === item.status;
-          const total = isTotal ? totalGeneral : agrupacionStatus[item.status] || 0;
+          const statusKey = normalizarStatusRequisicion(item.status);
+          const isActivo = isTotal ? !statusSeleccionado : statusSeleccionado === statusKey;
+          const total = isTotal ? totalGeneral : agrupacionStatus[statusKey] || 0;
 
           return (
             <button
@@ -37,7 +41,7 @@ const ResumenRequisiciones = ({
               className={`bg-white px-4 py-4 text-left transition hover:bg-[#F8FAFC] ${
                 isActivo ? "shadow-inner ring-2 ring-inset ring-[#2563EB]" : ""
               }`}
-              onClick={() => onClickStatus && onClickStatus(item.status)}
+              onClick={() => onClickStatus && onClickStatus(isTotal ? item.status : statusKey)}
             >
               <div className="flex items-center gap-3">
                 <span className={`h-3 w-3 rounded-full ${item.color}`} />

@@ -7,6 +7,7 @@ import TablaRequisicionesMobile from "../../components/tablas/TablaRequisiciones
 import ModalAdminDetalleRequisicion from "../../components/modales/ModalAdminDetalleRequisicion";
 import ResumenRequisiciones from "../../components/ResumenRequisiciones";
 import useTodasRequisiciones from "../../hooks/useTodasRequisiciones";
+import { normalizarStatusRequisicion } from "../../helpers/FuncionesHelpers";
 
 const TodasRequisiciones = () => {
   const location = useLocation();
@@ -64,7 +65,9 @@ const TodasRequisiciones = () => {
   };
 
   const datosFiltradosConStatus = filtroStatus
-    ? datosFiltrados.filter((item) => item.status === filtroStatus)
+    ? datosFiltrados.filter(
+        (item) => normalizarStatusRequisicion(item.status) === filtroStatus
+      )
     : datosFiltrados;
 
   const selectStyles = {
