@@ -146,6 +146,11 @@ export const exportarRequisicionesAExcel = (
         Comprador: req.comprador || "",
         Proveedor: req.proveedor || "",
         "Tipo de compra": req.tipoCompra || "",
+        "Recurrencia de compra": req.recurrenciaCompra === "no_recurrente"
+            ? "No recurrente"
+            : req.recurrenciaCompra === "recurrente"
+                ? "Recurrente"
+                : "",
         Monto: req.monto || "",
         ETA: formatearFechaMexico(req.eta),
         "Numero orden compra": req.numeroOrdenCompra || "",
@@ -158,6 +163,7 @@ export const exportarRequisicionesAExcel = (
         "Comentario autorizador": req.comentarioAutorizador || "",
         Links: formatearLinks(req.links),
         Archivos: formatearArchivos(req.archivos),
+        Cotizaciones: formatearArchivos(req.cotizacionesArchivos),
     }));
 
     const datosArticulos = requisiciones.flatMap((req) => {
@@ -199,6 +205,7 @@ export const exportarRequisicionesAExcel = (
         { wch: 24 },
         { wch: 24 },
         { wch: 18 },
+        { wch: 24 },
         { wch: 16 },
         { wch: 24 },
         { wch: 22 },
@@ -209,6 +216,7 @@ export const exportarRequisicionesAExcel = (
         { wch: 20 },
         { wch: 40 },
         { wch: 40 },
+        { wch: 50 },
         { wch: 50 },
         { wch: 50 },
     ];
@@ -230,3 +238,39 @@ export const exportarRequisicionesAExcel = (
         `${nombreArchivo}-${new Date().toISOString().split("T")[0]}.xlsx`
     )
 }
+
+export const exportarReporteStatusAExcel = (
+    resumenStatus,
+    totalRequisiciones,
+    nombreArchivo = "reporte-status-requisiciones"
+) => {
+    const datosResumen = resumenStatus.map((item) => ({
+        Status: item.statusFormateado,
+        Cantidad: item.cantidad,
+        Porcentaje: `${item.porcentaje.toFixed(2)}%`,
+    }));
+
+    const datosConTotal = [
+        ...datosResumen,
+        {
+            Status: "Total",
+            Cantidad: totalRequisiciones,
+            Porcentaje: totalRequisiciones > 0 ? "100.00%" : "0.00%",
+        },
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(datosConTotal);
+    worksheet["!cols"] = [
+        { wch: 30 },
+        { wch: 14 },
+        { wch: 14 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Status");
+
+    XLSX.writeFile(
+        workbook,
+        `${nombreArchivo}-${new Date().toISOString().split("T")[0]}.xlsx`
+    );
+};

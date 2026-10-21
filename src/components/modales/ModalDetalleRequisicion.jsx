@@ -199,6 +199,16 @@ const ModalDetalleRequisicion = ({ isOpen, requisicion, onClose }) => {
                 {requisicion?.tipoCompra || <span className="italic text-gray-400">No asignado</span>}
               </span>
             </div>
+            <div>
+              <span className="block text-gray-500 text-sm">Recurrencia de compra</span>
+              <span className="text-gray-700 text-base font-medium">
+                {requisicion?.recurrenciaCompra === "no_recurrente"
+                  ? "No recurrente"
+                  : requisicion?.recurrenciaCompra === "recurrente"
+                    ? "Recurrente"
+                    : <span className="italic text-gray-400">No asignada</span>}
+              </span>
+            </div>
           </div>
 
           {/* NUEVA SECCIÓN: Monto y ETA */}
@@ -277,6 +287,79 @@ const ModalDetalleRequisicion = ({ isOpen, requisicion, onClose }) => {
             </div>
           </div>
         )}
+
+        <div>
+          <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
+            Cotizaciones
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+            {requisicion?.cotizacionesArchivos && requisicion.cotizacionesArchivos.length > 0 ? (
+              requisicion.cotizacionesArchivos.map((archivo, index) => {
+                let fileUrl = "";
+                let normalizedPath = "";
+                if (typeof archivo === "string") {
+                  normalizedPath = normalizePath(archivo);
+                  fileUrl = `${baseUrl}/${normalizedPath}`;
+                } else if (archivo && archivo.url) {
+                  normalizedPath = archivo.url;
+                  fileUrl = archivo.url;
+                }
+                return (
+                  <div
+                    key={index}
+                    onClick={() => window.open(fileUrl, "_blank")}
+                    className="border border-gray-200 rounded-lg shadow-sm overflow-hidden cursor-pointer transform hover:scale-105 transition flex flex-col"
+                  >
+                    <div className="flex-1">
+                      {isImage(archivo) ? (
+                        <img
+                          src={fileUrl}
+                          alt={`Cotizacion ${index + 1}`}
+                          className="object-cover w-full h-24 sm:h-32 pointer-events-none"
+                        />
+                      ) : isPDF(archivo) ? (
+                        <div className="w-full h-24 sm:h-32 overflow-hidden pointer-events-none">
+                          <object
+                            data={fileUrl}
+                            type="application/pdf"
+                            className="w-full h-full pointer-events-none"
+                          >
+                            <div className="flex items-center justify-center h-24 sm:h-32">
+                              <span className="text-xs">
+                                Vista previa no disponible
+                              </span>
+                            </div>
+                          </object>
+                        </div>
+                      ) : (
+                        <span className="text-xs p-3 block">Archivo</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-center p-2 border-t border-gray-200 pointer-events-none">
+                      {isImage(archivo) ? (
+                        <>
+                          <AiFillFileImage className="text-green-500 text-xl mr-1" />
+                          <span className="text-sm">Imagen</span>
+                        </>
+                      ) : isPDF(archivo) ? (
+                        <>
+                          <AiOutlineFilePdf className="text-red-500 text-xl mr-1" />
+                          <span className="text-sm">PDF</span>
+                        </>
+                      ) : (
+                        <span className="text-xs">Archivo</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-gray-500 col-span-1 xs:col-span-2">
+                No se han subido cotizaciones.
+              </p>
+            )}
+          </div>
+        </div>
 
         {/* Sección de Documentos */}
         <div>

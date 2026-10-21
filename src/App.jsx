@@ -46,6 +46,9 @@ const HistorialStatus = lazy(() =>
 const ExportarRequisiciones = lazy(() =>
     import("./pages/requisiciones/ExportarRequisiciones")
 )
+const ReportesRequisiciones = lazy(() =>
+    import("./pages/requisiciones/ReportesRequisiciones")
+)
 
 function App() {
   return (
@@ -150,6 +153,17 @@ function App() {
                     <RoleProtectedRoute allowedRoles={["admin", "superadmin"]}>
                     <ExportarRequisicionesProvider>
                         <ExportarRequisiciones />
+                    </ExportarRequisicionesProvider>
+                    </RoleProtectedRoute>
+                }
+              />
+
+              <Route
+                path="reportes"
+                element={
+                    <RoleProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                    <ExportarRequisicionesProvider>
+                        <ReportesRequisiciones />
                     </ExportarRequisicionesProvider>
                     </RoleProtectedRoute>
                 }

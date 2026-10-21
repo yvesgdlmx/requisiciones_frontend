@@ -87,7 +87,7 @@ const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) =
         position: "top-end",
         icon: "error",
         title: "Error al actualizar",
-        text: "Ocurrió un error al guardar los cambios.",
+        text: error.response?.data?.msg || "Ocurrió un error al guardar los cambios.",
         showConfirmButton: false,
         timer: 3000,
         timerProgressBar: true,
@@ -416,7 +416,7 @@ const ModalAutorizarRequisicion = ({ isOpen, requisicion, onClose, onUpdate }) =
           ✓ Autorizar
         </button>
         <button
-          onClick={() => handleUpdateStatus("esperando autorizacion")}
+          onClick={() => handleUpdateStatus("rechazada")}
           className="bg-red-500 hover:bg-red-600 text-white px-4 sm:px-5 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm"
         >
           ✗ Rechazar

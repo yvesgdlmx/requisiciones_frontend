@@ -89,7 +89,7 @@ const TodasRequisiciones = () => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8 2xl:max-w-[1600px]">
+    <div className="w-full px-4 py-3 sm:px-6 lg:px-8 2xl:px-10">
       <section className="mb-6 overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-sm">
         <div className="border-b border-[#E2E8F0] bg-white px-5 py-5 sm:px-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

@@ -27,33 +27,40 @@ const ResumenRequisiciones = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#E2E8F0] xl:grid-cols-7">
+      <div className="grid grid-cols-2 gap-px rounded-lg border border-[#E2E8F0] bg-[#E2E8F0] xl:grid-cols-7">
         {estadosConTotal.map((item) => {
           const isTotal = item.status === "Total General";
           const statusKey = normalizarStatusRequisicion(item.status);
           const isActivo = isTotal ? !statusSeleccionado : statusSeleccionado === statusKey;
           const total = isTotal ? totalGeneral : agrupacionStatus[statusKey] || 0;
+          const statusLabel = isTotal ? "Total" : formatearStatusRequisicion(item.status);
 
           return (
             <button
               type="button"
               key={item.status}
-              className={`bg-white px-4 py-4 text-left transition hover:bg-[#F8FAFC] ${
+              className={`group relative bg-white px-4 py-4 text-left transition hover:bg-[#F8FAFC] ${
                 isActivo ? "shadow-inner ring-2 ring-inset ring-[#2563EB]" : ""
               }`}
               onClick={() => onClickStatus && onClickStatus(isTotal ? item.status : statusKey)}
             >
               <div className="flex items-center gap-3">
-                <span className={`h-3 w-3 rounded-full ${item.color}`} />
+                <span className={`h-3 w-3 shrink-0 rounded-full ${item.color}`} />
                 <div className="min-w-0">
                   <p className="truncate text-xs font-semibold uppercase tracking-wide text-[#64748B]">
-                    {isTotal ? "Total" : formatearStatusRequisicion(item.status)}
+                    {statusLabel}
                   </p>
                   <p className={`mt-1 text-2xl font-semibold ${item.textColor}`}>
                     {total}
                   </p>
                 </div>
               </div>
+
+              {!isTotal && (
+                <span className="pointer-events-none absolute left-4 top-[calc(100%+8px)] z-30 hidden w-max max-w-[260px] rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-xs font-semibold leading-snug text-[#334155] shadow-lg group-hover:block group-focus:block">
+                  {statusLabel}
+                </span>
+              )}
             </button>
           );
         })}

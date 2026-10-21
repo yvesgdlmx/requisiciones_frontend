@@ -15,6 +15,7 @@ export const TodasRequisicionesProvider = ({ children }) => {
     { value: "fecha", label: "Fecha" },
     { value: "solicitante", label: "Solicitante" },
     { value: "comprador", label: "Comprador" },
+    { value: "proveedor", label: "Proveedor" },
     { value: "status", label: "Status" },
   ];
   const [opcionSeleccionada, setOpcionSeleccionada] = useState(opciones[0]);

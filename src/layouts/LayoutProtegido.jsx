@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, Navigate } from "react-router-dom";
-import { FiFileText, FiCheckCircle, FiList, FiBell, FiTrendingDown, FiActivity, FiDownload } from "react-icons/fi";
+import { FiFileText, FiCheckCircle, FiList, FiBell, FiTrendingDown, FiActivity, FiDownload, FiPieChart } from "react-icons/fi";
 import { RiMenuFoldLine, RiMenuUnfoldLine } from "react-icons/ri";
 import { FaUserCircle, FaFolderOpen } from "react-icons/fa";
 import useAuth from "../hooks/useAuth";
@@ -37,7 +37,7 @@ const LayoutProtegido = () => {
   return (
     <>
       {auth.id ? (
-        <div className="flex h-screen relative">
+        <div className="relative flex h-screen">
           {/* Sidebar versión pantallas grandes */}
           <aside
             className={`hidden md:flex flex-col transition-all duration-300 ${
@@ -140,6 +140,17 @@ const LayoutProtegido = () => {
                     >
                     <FiActivity className="text-xl" />
                     {expandido && <span className="ml-3">Historial de Movimientos</span>}
+                    </NavLink>
+                </li>
+                )}
+                {tieneRolAdmin && (
+                <li>
+                    <NavLink
+                    to="/requisiciones/reportes"
+                    className={SeccionActual}
+                    >
+                    <FiPieChart className="text-xl" />
+                    {expandido && <span className="ml-3">Reportes</span>}
                     </NavLink>
                 </li>
                 )}
@@ -320,6 +331,18 @@ const LayoutProtegido = () => {
                   {tieneRolAdmin && (
                     <li>
                         <NavLink
+                        to="/requisiciones/reportes"
+                        className={SeccionActual}
+                        onClick={() => setMostrarSidebarMovil(false)}
+                        >
+                        <FiPieChart className="text-xl" />
+                        <span className="ml-3">Reportes</span>
+                        </NavLink>
+                    </li>
+                    )}
+                  {tieneRolAdmin && (
+                    <li>
+                        <NavLink
                         to="/requisiciones/exportar-requisiciones"
                         className={SeccionActual}
                         onClick={() => setMostrarSidebarMovil(false)}
@@ -406,8 +429,10 @@ const LayoutProtegido = () => {
             </button>
           </div>
           {/* Contenido principal */}
-          <main className="flex-1 pt-10 lg:p-6 overflow-auto bg-[#F8FAFC]">
-            <Outlet />
+          <main className="h-screen min-w-0 flex-1 overflow-auto bg-[#F8FAFC]">
+            <div className="min-h-full w-full">
+              <Outlet />
+            </div>
           </main>
           {/* Modal para el perfil */}
           <ModalPerfil isOpen={mostrarModal} onRequestClose={() => setMostrarModal(false)} />

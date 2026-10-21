@@ -43,6 +43,7 @@ const CardInfoRequisicion = ({
           <select
             value={updatedStatus}
             onChange={handleStatusChange}
+            disabled={statusOptions.length <= 1}
             className="text-md w-full rounded border border-gray-300 px-2 py-1 text-gray-800"
           >
             {statusOptions.map((status, index) => (

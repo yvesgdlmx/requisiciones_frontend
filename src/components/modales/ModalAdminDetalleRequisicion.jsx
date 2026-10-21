@@ -10,6 +10,8 @@ import CardArticulo from "../cards/CardArticulo";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import RequisicionPDF from "../herramientasPDF/RequisicionPDF";
 import useCategorias from "../../hooks/useCategorias";
+import useAuth from "../../hooks/useAuth";
+import { obtenerSiguientesStatus, validarTransicionStatus } from "../../helpers/flujoStatusRequisicion";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
 Modal.setAppElement("#root");
@@ -31,9 +33,12 @@ const ModalAdminDetalleRequisicion = ({
   onClose,
   onUpdate,
 }) => {
+  const { auth } = useAuth();
   const { categoriasFiltradas = [] } = useCategorias() || {};
   const [nuevosDocumentos, setNuevosDocumentos] = useState([]);
+  const [nuevasCotizaciones, setNuevasCotizaciones] = useState([]);
   const [archivosExistentes, setArchivosExistentes] = useState([]);
+  const [cotizacionesExistentes, setCotizacionesExistentes] = useState([]);
   const [updatedStatus, setUpdatedStatus] = useState("");
   const [comentario, setComentario] = useState("");
   const [numeroOrdenCompra, setNumeroOrdenCompra] = useState("");
@@ -43,6 +48,7 @@ const ModalAdminDetalleRequisicion = ({
   const [factura, setFactura] = useState("");
   const [proveedor, setProveedor] = useState("");
   const [tipoCompra, setTipoCompra] = useState("");
+  const [recurrenciaCompra, setRecurrenciaCompra] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [moneda, setMoneda] = useState("MXN");
   const [cantidad, setCantidad] = useState("");
@@ -56,28 +62,24 @@ const ModalAdminDetalleRequisicion = ({
   // Estado para el excedente
   const [excedenteInfo, setExcedenteInfo] = useState(null);
 
-  const userRole = localStorage.getItem("rol");
+  const userRole = auth?.rol;
 
-  const statusOptions = [
-    "creada",
-    "rechazada",
-    "cotizando",
-    "aprobada",
-    "esperando autorizacion",
-    "autorizada",
-    'proceso de pago',
-    'proveedor preparando envío',
-    "liberacion aduanal",
-    "proceso de entrega",
-    "entregada parcial",
-    "concluida",
-    "cancelada",
-  ];
+  // El recorrido parte del status guardado, no de la opción aún sin guardar.
+  const statusOptions = requisicion?.status
+    ? [
+        requisicion.status,
+        ...(userRole === "admin"
+          ? obtenerSiguientesStatus(requisicion.status, userRole)
+          : []),
+      ]
+    : [];
 
   useEffect(() => {
     if (!isOpen) {
       setNuevosDocumentos([]);
+      setNuevasCotizaciones([]);
       setArchivosExistentes([]);
+      setCotizacionesExistentes([]);
       setComentario("");
       setNumeroOrdenCompra("");
       setCotizacion("");
@@ -86,6 +88,7 @@ const ModalAdminDetalleRequisicion = ({
       setFactura("");
       setProveedor("");
       setTipoCompra("");
+      setRecurrenciaCompra("");
       setCategoriaId("");
       setMoneda("MXN");
       setCantidad("");
@@ -106,8 +109,10 @@ const ModalAdminDetalleRequisicion = ({
       setFactura(requisicion.factura || "");
       setProveedor(requisicion.proveedor || "");
       setTipoCompra(requisicion.tipoCompra || "");
+      setRecurrenciaCompra(requisicion.recurrenciaCompra || "");
       setCategoriaId(requisicion.categoriaId || "");
       setArchivosExistentes(requisicion.archivos || []);
+      setCotizacionesExistentes(requisicion.cotizacionesArchivos || []);
 
       if (requisicion.monto) {
         const partes = requisicion.monto.split(" ");
@@ -257,8 +262,42 @@ const ModalAdminDetalleRequisicion = ({
     e.target.value = "";
   };
 
+  const handleAgregarCotizacion = (e) => {
+    const files = Array.from(e.target.files);
+    const invalidFile = files.find((file) => !allowedMimeTypes.includes(file.type));
+
+    if (invalidFile) {
+      Swal.fire({
+        icon: "warning",
+        title: "Archivo no permitido",
+        text: "Solo puedes subir archivos JPEG, JPG, PNG o PDF.",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const total =
+      nuevasCotizaciones.length + files.length + cotizacionesExistentes.length;
+    if (total > 10) {
+      Swal.fire({
+        icon: "warning",
+        title: "Maximo 10 cotizaciones",
+        text: "Puedes adjuntar hasta 10 archivos de cotizacion.",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    setNuevasCotizaciones((prev) => [...prev, ...files]);
+    e.target.value = "";
+  };
+
   const handleQuitarDocumento = (index) => {
     setNuevosDocumentos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleQuitarCotizacion = (index) => {
+    setNuevasCotizaciones((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleEliminarArchivoExistente = (index) => {
@@ -279,6 +318,32 @@ const ModalAdminDetalleRequisicion = ({
           position: "top-end",
           icon: "success",
           title: "Archivo marcado para eliminación",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+      }
+    });
+  };
+
+  const handleEliminarCotizacionExistente = (index) => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "La cotización se eliminará al guardar los cambios.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setCotizacionesExistentes((prev) => prev.filter((_, i) => i !== index));
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Cotización marcada para eliminación",
           showConfirmButton: false,
           timer: 2000,
           timerProgressBar: true,
@@ -339,11 +404,60 @@ const ModalAdminDetalleRequisicion = ({
     </div>
   );
 
+  const renderPreviewNuevasCotizaciones = () => (
+    <div className="flex flex-wrap gap-2">
+      {nuevasCotizaciones.map((file, index) => {
+        const fileUrl = URL.createObjectURL(file);
+        return (
+          <div
+            key={index}
+            className="relative w-32 h-32 border rounded flex items-center justify-center bg-gray-50"
+          >
+            {isImage(file) ? (
+              <img
+                src={fileUrl}
+                alt={file.name}
+                className="object-cover w-full h-full cursor-pointer"
+                onClick={() => window.open(fileUrl, "_blank")}
+              />
+            ) : isPDF(file) ? (
+              <div
+                className="flex flex-col items-center justify-center p-2 cursor-pointer"
+                onClick={() => window.open(fileUrl, "_blank")}
+              >
+                <AiOutlineFilePdf className="h-8 w-8 text-red-500" />
+                <span className="text-xs mt-1">Ver PDF</span>
+              </div>
+            ) : (
+              <span className="text-xs">{file.name}</span>
+            )}
+            <button
+              type="button"
+              onClick={() => handleQuitarCotizacion(index)}
+              className="absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-gray-200"
+              title="Quitar cotizacion"
+            >
+              <FaTimes className="text-red-500" />
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+
   const handleClearComment = () => setComentario("");
 
   const handleSaveChanges = async () => {
     setIsLoading(true);
     try {
+      const errorStatus = validarTransicionStatus(
+        requisicion.status, updatedStatus, userRole === "admin" ? "admin" : "solicitante",
+      );
+      if (errorStatus) {
+        Swal.fire({ icon: "warning", title: "Cambio de status no permitido", text: errorStatus });
+        setIsLoading(false);
+        return;
+      }
       if (userRole === "superadmin" && updatedStatus !== requisicion.status) {
         Swal.fire({
           toast: true,
@@ -354,6 +468,20 @@ const ModalAdminDetalleRequisicion = ({
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const totalCotizaciones =
+        cotizacionesExistentes.length + nuevasCotizaciones.length;
+
+      if (recurrenciaCompra === "no_recurrente" && totalCotizaciones < 3) {
+        Swal.fire({
+          icon: "warning",
+          title: "Cotizaciones requeridas",
+          text: "Las compras no recurrentes requieren al menos 3 archivos de cotizacion.",
+          confirmButtonText: "Entendido",
         });
         setIsLoading(false);
         return;
@@ -435,6 +563,7 @@ const ModalAdminDetalleRequisicion = ({
     data.append("comentario", comentario);
     data.append("proveedor", proveedor);
     data.append("tipoCompra", tipoCompra === "" ? null : tipoCompra);
+    data.append("recurrenciaCompra", recurrenciaCompra === "" ? null : recurrenciaCompra);
     data.append("numeroOrdenCompra", numeroOrdenCompra);
     if (tipoCompra === "internacional") {
       data.append("cotizacion", cotizacion);
@@ -452,7 +581,9 @@ const ModalAdminDetalleRequisicion = ({
     data.append("monto", montoCompleto);
     data.append("eta", eta);
     data.append("archivosExistentes", JSON.stringify(archivosExistentes));
+    data.append("cotizacionesExistentes", JSON.stringify(cotizacionesExistentes));
     nuevosDocumentos.forEach((file) => data.append("archivo", file));
+    nuevasCotizaciones.forEach((file) => data.append("cotizacionesArchivo", file));
 
     const config = { headers: { Authorization: `Bearer ${token}` } };
     const response = await clienteAxios.put(
@@ -478,7 +609,9 @@ const ModalAdminDetalleRequisicion = ({
 
   const handleClose = () => {
     setNuevosDocumentos([]);
+    setNuevasCotizaciones([]);
     setArchivosExistentes([]);
+    setCotizacionesExistentes([]);
     setComentario("");
     setNumeroOrdenCompra("");
     setCotizacion("");
@@ -487,6 +620,7 @@ const ModalAdminDetalleRequisicion = ({
     setFactura("");
     setProveedor("");
     setTipoCompra("");
+    setRecurrenciaCompra("");
     setCategoriaId("");
     setMoneda("MXN");
     setCantidad("");
@@ -586,6 +720,7 @@ const ModalAdminDetalleRequisicion = ({
                       <select
                         value={updatedStatus}
                         onChange={handleStatusChange}
+                        disabled={statusOptions.length <= 1}
                         className="border border-gray-300 rounded px-2 py-1"
                       >
                         {statusOptions.map((status, index) => {
@@ -691,7 +826,7 @@ const ModalAdminDetalleRequisicion = ({
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
                 Datos de la Orden de Compra
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-gray-500 text-sm mb-1">
                     N° Orden de Compra
@@ -750,6 +885,20 @@ const ModalAdminDetalleRequisicion = ({
                     ) : (
                       <option disabled>No hay categorías disponibles</option>
                     )}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gray-500 text-sm mb-1">
+                    Recurrencia de compra
+                  </label>
+                  <select
+                    value={recurrenciaCompra}
+                    onChange={(e) => setRecurrenciaCompra(e.target.value)}
+                    className="w-full border border-gray-300 rounded px-2 py-1"
+                  >
+                    <option value="">Seleccione una opción</option>
+                    <option value="recurrente">Recurrente</option>
+                    <option value="no_recurrente">No recurrente</option>
                   </select>
                 </div>
               </div>
@@ -813,6 +962,87 @@ const ModalAdminDetalleRequisicion = ({
               )}
 
               {/* Mostrar información del presupuesto */}
+              <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h4 className="text-md font-semibold text-gray-700">
+                      Archivos de cotizacion
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {recurrenciaCompra === "no_recurrente"
+                        ? "Compra no recurrente: se requieren minimo 3 cotizaciones."
+                        : "Compra recurrente: las cotizaciones son opcionales."}
+                    </p>
+                  </div>
+                  <span
+                    className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                      recurrenciaCompra === "no_recurrente" &&
+                      cotizacionesExistentes.length + nuevasCotizaciones.length < 3
+                        ? "bg-red-100 text-red-700"
+                        : "bg-emerald-100 text-emerald-700"
+                    }`}
+                  >
+                    {cotizacionesExistentes.length + nuevasCotizaciones.length}
+                    {recurrenciaCompra === "no_recurrente" ? " / 3 requeridas" : " cargadas"}
+                  </span>
+                </div>
+
+                {cotizacionesExistentes.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {cotizacionesExistentes.map((archivo, index) => {
+                      const fileUrl =
+                        typeof archivo === "string" ? archivo : archivo.url;
+                      const normalizedPath =
+                        typeof fileUrl === "string"
+                          ? fileUrl.replace(/\\/g, "/")
+                          : "";
+                      const urlCompleta = fileUrl.startsWith("http")
+                        ? fileUrl
+                        : `${baseUrl}/${normalizedPath}`;
+
+                      return (
+                        <div
+                          key={index}
+                          className="relative flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-gray-700"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => window.open(urlCompleta, "_blank")}
+                            className="font-medium text-blue-700 hover:underline"
+                          >
+                            Cotizacion {index + 1}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleEliminarCotizacionExistente(index)}
+                            className="rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                            title="Eliminar cotizacion"
+                          >
+                            <FaTimes className="text-xs" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Agregar cotizacion(es) (imagen o PDF)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,application/pdf"
+                    onChange={handleAgregarCotizacion}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-lg file:text-sm file:font-semibold file:bg-white hover:file:bg-gray-100"
+                    multiple
+                  />
+                  {nuevasCotizaciones.length > 0 && (
+                    <div className="mt-4">{renderPreviewNuevasCotizaciones()}</div>
+                  )}
+                </div>
+              </div>
+
               {cargandoPresupuesto && (
                 <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
                   <p className="text-sm text-blue-600">
