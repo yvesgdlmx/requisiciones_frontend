@@ -31,10 +31,10 @@ const coloresStatus = [
 ];
 
 const nombresTiempos = {
-  creadaAprobada: "Creada a aprobada",
+  creadaCotizando: "Creada a cotizando",
   creadaRechazada: "Creada a rechazada",
   esperandoAutorizacionAutorizada: "Esperando autorizacion a autorizada",
-  aprobadaProveedorPreparandoEnvio: "Aprobada a proveedor preparando envio",
+  cotizandoProveedorPreparandoEnvio: "Cotizando a proveedor preparando envio",
   creadaConcluida: "Creada a concluida",
 };
 
@@ -43,7 +43,6 @@ const getStatusColor = (status) => {
     creada: "border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]",
     rechazada: "border-red-100 bg-red-50 text-red-700",
     cotizando: "border-[#DBEAFE] bg-[#DBEAFE]/60 text-[#1E40AF]",
-    aprobada: "border-emerald-100 bg-emerald-50 text-emerald-700",
     "esperando autorizacion": "border-amber-100 bg-amber-50 text-amber-700",
     autorizada: "border-cyan-100 bg-cyan-50 text-cyan-700",
     "proceso de pago": "border-pink-100 bg-pink-50 text-pink-700",

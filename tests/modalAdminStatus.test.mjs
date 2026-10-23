@@ -27,6 +27,32 @@ const compilado = await build({
     },
   }],
 });
+
+test("los selectores ofrecen envio directo desde autorizada y cierre desde entrega parcial", () => {
+  globalThis.usuarioPrueba = { rol: "admin" };
+  globalThis.localStorage = { getItem: () => null };
+  try {
+    for (const [status, esperados] of [
+      ["autorizada", ["autorizada", "proceso de pago", "proveedor preparando envío"]],
+      ["proceso de pago", ["proceso de pago", "proveedor preparando envío"]],
+      ["entregada parcial", ["entregada parcial", "concluida"]],
+    ]) {
+      const html = renderToStaticMarkup(React.createElement(Modal, {
+        isOpen: true, requisicion: { status, archivos: [], articulos: [] },
+      }));
+      const selectores = [...html.matchAll(/<select([^>]*)>([\s\S]*?)<\/select>/g)]
+        .filter(([, , opciones]) => opciones.includes(`value="${status}"`));
+      assert.equal(selectores.length, 2);
+      for (const [, atributos, opciones] of selectores) {
+        assert.doesNotMatch(atributos, /disabled/);
+        assert.deepEqual([...opciones.matchAll(/<option[^>]*value="([^"]*)"/g)].map((opcion) => opcion[1]), esperados);
+      }
+    }
+  } finally {
+    delete globalThis.usuarioPrueba;
+    delete globalThis.localStorage;
+  }
+});
 const modulo = { exports: {} };
 new Function("require", "module", "exports", compilado.outputFiles[0].text)(
   createRequire(import.meta.url), modulo, modulo.exports);
@@ -45,7 +71,7 @@ test("admin puede desplegar los siguientes status sin un rol guardado en localSt
     for (const [, atributos, opciones] of selectores) {
       assert.doesNotMatch(atributos, /disabled/);
       assert.deepEqual([...opciones.matchAll(/<option[^>]*value="([^"]*)"/g)].map((opcion) => opcion[1]),
-        ["creada", "cancelada", "esperando autorizacion", "aprobada"]);
+        ["creada", "cancelada", "esperando autorizacion", "cotizando"]);
     }
   } finally {
     delete globalThis.usuarioPrueba;

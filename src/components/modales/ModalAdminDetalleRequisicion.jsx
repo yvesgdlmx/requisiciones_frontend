@@ -487,21 +487,21 @@ const ModalAdminDetalleRequisicion = ({
         return;
       }
 
-      // Bloquear cambio a "autorizada" o "aprobada" si no hay presupuesto disponible
+      // Bloquear cambio a "autorizada" o "cotizando" si no hay presupuesto disponible
       const disponibleFinal = presupuestoInfo
         ? presupuestoInfo.presupuestoDisponible -
           (excedenteInfo?.excedente || 0)
         : 0;
 
       if (
-        (updatedStatus === "autorizada" || updatedStatus === "aprobada") &&
+        (updatedStatus === "autorizada" || updatedStatus === "cotizando") &&
         presupuestoInfo &&
         disponibleFinal <= 0
       ) {
         Swal.fire({
           icon: "warning",
-          title: "No se puede autorizar/aprobar",
-          text: "El presupuesto disponible es insuficiente o se ha agotado. No es posible cambiar el estado a 'autorizada' o 'aprobada'.",
+          title: "Presupuesto insuficiente",
+          text: "El presupuesto disponible es insuficiente o se ha agotado. No es posible cambiar el estado a 'autorizada' o 'cotizando'.",
           confirmButtonText: "Entendido",
         });
         setIsLoading(false);
@@ -724,14 +724,14 @@ const ModalAdminDetalleRequisicion = ({
                         className="border border-gray-300 rounded px-2 py-1"
                       >
                         {statusOptions.map((status, index) => {
-                          // Bloquear "autorizada" y "aprobada" si no hay presupuesto disponible
+                          // Bloquear "autorizada" y "cotizando" si no hay presupuesto disponible
                           const disponibleFinal = presupuestoInfo
                             ? presupuestoInfo.presupuestoDisponible -
                               (excedenteInfo?.excedente || 0)
                             : 0;
                           const isDisabled =
                             (status === "autorizada" ||
-                              status === "aprobada") &&
+                              status === "cotizando") &&
                             presupuestoInfo &&
                             disponibleFinal <= 0;
 

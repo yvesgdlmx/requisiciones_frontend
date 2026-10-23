@@ -109,7 +109,6 @@ export const TodasRequisicionesProvider = ({ children }) => {
   const detallesDeStatus = [
     { status: "creada", color: "bg-gray-200", textColor: "text-gray-800" },
     { status: "rechazada", color: "bg-red-400", textColor: "text-red-800" },
-    { status: "aprobada", color: "bg-green-400", textColor: "text-green-800" },
     { status: "cotizando", color: "bg-blue-200", textColor: "text-blue-800" },
     { status: "esperando autorizacion", color: "bg-yellow-200", textColor: "text-yellow-800" },
     { status: "autorizada", color: "bg-cyan-200", textColor: "text-cyan-800" },

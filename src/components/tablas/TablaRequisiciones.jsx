@@ -81,8 +81,6 @@ const TablaRequisiciones = ({
         return "border-gray-200 bg-gray-200 text-gray-800";
       case "rechazada":
         return "border-red-400 bg-red-400 text-red-900";
-      case "aprobada":
-        return "border-green-400 bg-green-400 text-green-900";
       case "cotizando":
         return "border-blue-200 bg-blue-200 text-blue-800";
       case "esperando autorizacion":
