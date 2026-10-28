@@ -154,7 +154,7 @@ const TablaCategorias = ({
                 <tr key={categoria.id} className="bg-white transition hover:bg-[#F8FAFC]">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#2563EB]">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#DBEAFE] text-[#2563EB]">
                         <FiFolder className="h-5 w-5" />
                       </div>
                       <p className="font-semibold capitalize text-[#334155]">

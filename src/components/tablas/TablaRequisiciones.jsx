@@ -1,3 +1,4 @@
+import AvatarIniciales from "../AvatarIniciales";
 import React, { useState } from "react";
 import { FaExclamationTriangle, FaPencilAlt, FaTrash } from "react-icons/fa";
 import { FiArrowLeft, FiArrowRight, FiFileText } from "react-icons/fi";
@@ -186,7 +187,7 @@ const TablaRequisiciones = ({
               >
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#2563EB]">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#DBEAFE] text-[#2563EB]">
                       <FiFileText className="h-5 w-5" />
                     </div>
                     <div className="flex items-center gap-2">
@@ -212,7 +213,7 @@ const TablaRequisiciones = ({
                   <p className="text-xs text-[#64748B]">{formatTime(item.fechaOriginal)}</p>
                 </td>
 
-                <td className="px-6 py-5">{capitalizeWords(item.solicitante)}</td>
+                <td className="px-6 py-5"><div className="flex items-center gap-3"><AvatarIniciales nombre={item.solicitante} /><span>{capitalizeWords(item.solicitante)}</span></div></td>
                 <td className="px-6 py-5">{capitalizeWords(item.area)}</td>
                 <td className="px-6 py-5">
                   {item.comprador ? capitalizeWords(item.comprador) : "Esperando comprador"}

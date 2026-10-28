@@ -1,14 +1,7 @@
+import AvatarIniciales from "../AvatarIniciales";
 import React from "react";
 import { FiEdit2, FiMail, FiMoreVertical, FiTrash2, FiUsers } from "react-icons/fi";
 
-const obtenerIniciales = (nombre, apellido) => {
-  const primerNombre = nombre?.split(" ")[0] || "";
-  const primerApellido = apellido?.split(" ")[0] || "";
-  return (
-    (primerNombre[0] || "").toUpperCase() +
-    (primerApellido[0] || "").toUpperCase()
-  );
-};
 
 const formatearRol = (rol) => {
   if (!rol) return "Sin rol";
@@ -75,9 +68,7 @@ const TablaUsuarios = ({
                 <tr key={id} className="bg-white transition hover:bg-[#F8FAFC]">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#DBEAFE] text-sm font-semibold text-[#2563EB]">
-                        {obtenerIniciales(nombre, apellido)}
-                      </div>
+                      <AvatarIniciales nombre={[nombre, apellido].filter(Boolean).join(" ")} size={40} />
                       <div>
                         <p className="font-semibold text-[#334155]">{nombre || "Sin nombre"}</p>
                         <p className="text-xs text-[#64748B]">{apellido || "Sin apellido"}</p>

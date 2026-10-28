@@ -1,3 +1,4 @@
+import AvatarIniciales from "../AvatarIniciales";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   FiArrowLeft,
@@ -6,7 +7,6 @@ import {
   FiClock,
   FiDollarSign,
   FiTrendingDown,
-  FiUser,
 } from "react-icons/fi";
 import { formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
 
@@ -190,7 +190,7 @@ const TablaHistorialGastos = ({ historial }) => {
 
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-2">
-                    <FiUser className="h-4 w-4 text-[#2563EB]" />
+                    <AvatarIniciales nombre={item.usuarioComprador} />
                     <span>{item.usuarioComprador || "Sin usuario"}</span>
                   </div>
                 </td>
@@ -224,9 +224,7 @@ const TablaHistorialGastos = ({ historial }) => {
                 <p className="font-semibold capitalize text-[#334155]">
                   {item.categoriaNombre || "Sin categoría"}
                 </p>
-                <p className="text-sm text-[#64748B]">
-                  {item.usuarioComprador || "Sin usuario"}
-                </p>
+                <div className="mt-2 flex items-center gap-2 text-sm text-[#64748B]"><AvatarIniciales nombre={item.usuarioComprador} size={30} /><span>{item.usuarioComprador || "Sin usuario"}</span></div>
               </div>
               <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusColor(item.statusRequisicion)}`}>
                 {formatearStatusRequisicion(item.statusRequisicion)}

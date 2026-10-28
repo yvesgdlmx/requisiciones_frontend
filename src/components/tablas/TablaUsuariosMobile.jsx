@@ -1,14 +1,7 @@
+import AvatarIniciales from "../AvatarIniciales";
 import React, { useEffect, useState } from "react";
 import { FiEdit2, FiMoreVertical, FiTrash2 } from "react-icons/fi";
 
-const obtenerIniciales = (nombre, apellido) => {
-  const primerNombre = nombre?.split(" ")[0] || "";
-  const primerApellido = apellido?.split(" ")[0] || "";
-  return (
-    (primerNombre[0] || "").toUpperCase() +
-    (primerApellido[0] || "").toUpperCase()
-  );
-};
 
 const TablaUsuariosMobile = ({
   usuarios,
@@ -37,9 +30,7 @@ const TablaUsuariosMobile = ({
         >
           <div className="flex items-center justify-between gap-3 border-b border-[#E2E8F0] px-4 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#DBEAFE] text-sm font-semibold text-[#2563EB]">
-                {obtenerIniciales(usuario.nombre, usuario.apellido)}
-              </div>
+              <AvatarIniciales nombre={[usuario.nombre, usuario.apellido].filter(Boolean).join(" ")} size={40} />
               <div>
                 <p className="font-semibold text-[#334155]">
                   {usuario.nombre} {usuario.apellido}

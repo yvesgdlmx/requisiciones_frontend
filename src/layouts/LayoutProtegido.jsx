@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, Navigate } from "react-router-dom";
-import { FiFileText, FiCheckCircle, FiList, FiBell, FiTrendingDown, FiActivity, FiDownload, FiPieChart } from "react-icons/fi";
+import { FiFileText, FiCheckCircle, FiList, FiBell, FiTrendingDown, FiActivity, FiDownload, FiPieChart, FiHelpCircle } from "react-icons/fi";
 import { RiMenuFoldLine, RiMenuUnfoldLine } from "react-icons/ri";
 import { FaUserCircle, FaFolderOpen } from "react-icons/fa";
 import useAuth from "../hooks/useAuth";
@@ -63,7 +63,7 @@ const LayoutProtegido = () => {
             )}
             {/* Navegación */}
             <nav
-              className={expandido ? "flex-1 mt-8 px-3" : "flex-1 mt-8 px-5"}
+              className={expandido ? "min-h-0 flex-1 overflow-y-auto mt-8 px-3" : "min-h-0 flex-1 overflow-y-auto mt-8 px-5"}
             >
               <ul className="space-y-2">
                 {/* Notificaciones */}
@@ -186,6 +186,19 @@ const LayoutProtegido = () => {
                     </NavLink>
                   </li>
                 )}
+                {tieneRolAdmin && (
+                  <li>
+                    <NavLink
+                      to="/requisiciones/ayuda"
+                      className={SeccionActual}
+                      title="Ayuda"
+                      aria-label="Ayuda"
+                    >
+                      <FiHelpCircle className="text-xl" />
+                      {expandido && <span className="ml-3">Ayuda</span>}
+                    </NavLink>
+                  </li>
+                )}
               </ul>
             </nav>
             {/* Sección de perfil en el sidebar */}
@@ -246,7 +259,7 @@ const LayoutProtegido = () => {
                 <img src="/img/logo_real.png" alt="logo" className="w-32 h-10" />
               </div>
               {/* Navegación */}
-              <nav className="flex-1 mt-4 px-3">
+              <nav className="min-h-0 flex-1 overflow-y-auto mt-4 px-3">
                 <ul className="space-y-2">
                   {/* Notificaciones */}
                   <li>
@@ -375,6 +388,18 @@ const LayoutProtegido = () => {
                       >
                         <FiCheckCircle className="text-xl" />
                         <span className="ml-3">Autorizar requisiciones</span>
+                      </NavLink>
+                    </li>
+                  )}
+                  {tieneRolAdmin && (
+                    <li>
+                      <NavLink
+                        to="/requisiciones/ayuda"
+                        className={SeccionActual}
+                        onClick={() => setMostrarSidebarMovil(false)}
+                      >
+                        <FiHelpCircle className="text-xl" />
+                        <span className="ml-3">Ayuda</span>
                       </NavLink>
                     </li>
                   )}

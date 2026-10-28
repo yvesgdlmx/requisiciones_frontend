@@ -1,453 +1,192 @@
-import React from "react";
+import AvatarIniciales from "../../components/AvatarIniciales";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  FiCalendar,
-  FiCheckCircle,
-  FiDatabase,
-  FiDownload,
-  FiFileText,
-  FiFilter,
-  FiHash,
-  FiPackage,
-  FiPaperclip,
-  FiRefreshCw,
-  FiSearch,
-  FiTruck,
+  FiActivity, FiArrowDown, FiArrowUp, FiCalendar, FiCheckCircle, FiChevronLeft,
+  FiChevronRight, FiChevronsDown, FiDownload, FiFileText, FiFilter,
+  FiHelpCircle, FiPackage, FiPaperclip, FiRefreshCw, FiSearch, FiTruck,
 } from "react-icons/fi";
 import useExportarRequisiciones from "../../hooks/useExportarRequisiciones";
 import { exportarRequisicionesAExcel } from "../../services/excelService";
-import { formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
+import { formatearStatusRequisicion, normalizarStatusRequisicion } from "../../helpers/FuncionesHelpers";
+import "./ExportarRequisiciones.css";
+
+const numero = (valor) => Number(valor || 0).toLocaleString("es-MX");
+const fecha = (valor) => {
+  const date = new Date(valor);
+  return valor && !Number.isNaN(date.getTime())
+    ? date.toLocaleDateString("es-MX", { timeZone: "America/Mexico_City", day: "2-digit", month: "short", year: "numeric" })
+    : "Sin fecha";
+};
+const dia = (valor) => {
+  const date = new Date(valor);
+  if (!valor || Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+};
+const solicitante = (req) => req.usuario
+  ? `${req.usuario.nombre || ""} ${req.usuario.apellido || ""}`.trim() || "Sin solicitante"
+  : typeof req.solicitante === "string" ? req.solicitante : "Sin solicitante";
+
+const crearLinea = (valores, maximo) => {
+  const puntos = valores.map((valor, index) => [48 + index * (904 / Math.max(valores.length - 1, 1)), 172 - (valor / maximo) * 144]);
+  // Curvas suaves sin sobrepasar el valor de los extremos de cada tramo.
+  return puntos.map(([x, y], i) => i === 0 ? `M ${x} ${y}`
+    : `C ${(puntos[i - 1][0] + x) / 2} ${puntos[i - 1][1]}, ${(puntos[i - 1][0] + x) / 2} ${y}, ${x} ${y}`).join(" ");
+};
 
 const ExportarRequisiciones = () => {
   const {
-    requisiciones,
-    requisicionesFiltradas,
-    cargando,
-    error,
-    modoExportacion,
-    setModoExportacion,
-    fechaInicio,
-    setFechaInicio,
-    fechaFin,
-    setFechaFin,
-    folio,
-    setFolio,
-    statusFiltro,
-    setStatusFiltro,
-    statusDisponibles,
-    obtenerRequisiciones,
+    requisiciones, requisicionesFiltradas, cargando, error,
+    modoExportacion, setModoExportacion, fechaInicio, setFechaInicio,
+    fechaFin, setFechaFin, folio, setFolio, statusFiltro, setStatusFiltro,
+    statusDisponibles, obtenerRequisiciones,
   } = useExportarRequisiciones();
+  const [paginacion, setPaginacion] = useState({ pagina: 1, datos: null });
+  const [orden, setOrden] = useState({ campo: "fechaHora", ascendente: false });
+  const [puntoActivo, setPuntoActivo] = useState(null);
+  const [verDisponibles, setVerDisponibles] = useState(true);
+  const total = requisicionesFiltradas.length;
+  const rangoInvalido = modoExportacion === "rango" && fechaInicio && fechaFin && fechaInicio > fechaFin;
+  const puedeExportar = total > 0 && !cargando && !error && !rangoInvalido;
 
-  const puedeExportar = requisicionesFiltradas.length > 0;
-  const fechaDescarga = new Date();
+  const ordenadas = useMemo(() => [...requisicionesFiltradas].sort((a, b) => {
+    const valor = (req) => orden.campo === "solicitante" ? solicitante(req)
+      : orden.campo === "fechaHora" ? new Date(req.fechaHora).getTime() || 0
+      : orden.campo === "articulos" ? req.articulos?.length || 0 : req[orden.campo] || "";
+    const x = valor(a), y = valor(b);
+    return (typeof x === "number" ? x - y : String(x).localeCompare(String(y), "es", { numeric: true })) * (orden.ascendente ? 1 : -1);
+  }), [requisicionesFiltradas, orden]);
+  const paginas = Math.max(1, Math.ceil(total / 8));
+  const pagina = paginacion.datos === requisicionesFiltradas ? Math.min(paginacion.pagina, paginas) : 1;
+  const inicio = (pagina - 1) * 8;
+  const filas = ordenadas.slice(inicio, inicio + 8);
 
-  const formatearFechaMexico = (fecha) => {
-    if (!fecha) return "Sin fecha";
-
-    return new Date(fecha).toLocaleDateString("es-MX", {
-      timeZone: "America/Mexico_City",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+  const grafica = useMemo(() => {
+    const seleccion = new Map(), disponibles = new Map();
+    requisiciones.forEach((req) => { const key = dia(req.fechaHora); if (key) disponibles.set(key, (disponibles.get(key) || 0) + 1); });
+    requisicionesFiltradas.forEach((req) => { const key = dia(req.fechaHora); if (key) seleccion.set(key, (seleccion.get(key) || 0) + 1); });
+    const claves = [...seleccion.keys()].sort();
+    const fin = modoExportacion === "rango" && fechaFin ? fechaFin : claves.at(-1) || dia(new Date());
+    const dias = Array.from({ length: 14 }, (_, i) => {
+      const date = new Date(`${fin}T12:00:00Z`);
+      date.setUTCDate(date.getUTCDate() - 13 + i);
+      const key = date.toISOString().slice(0, 10);
+      return { key, etiqueta: date.toLocaleDateString("es-MX", { timeZone: "UTC", day: "numeric", month: "short" }), seleccion: seleccion.get(key) || 0, disponibles: disponibles.get(key) || 0 };
     });
+    const max = Math.max(4, ...dias.map((d) => Math.max(d.seleccion, verDisponibles ? d.disponibles : 0)));
+    const paso = Math.max(1, Math.ceil(max / 4));
+    return { dias, maximo: paso * 4, paso };
+  }, [requisiciones, requisicionesFiltradas, modoExportacion, fechaFin, verDisponibles]);
+
+  const totalArticulos = requisicionesFiltradas.reduce((sum, req) => sum + (req.articulos?.length || 0), 0);
+  const conProveedor = requisicionesFiltradas.filter((req) => req.proveedor).length;
+  const conArchivos = requisicionesFiltradas.filter((req) => req.archivos?.length).length;
+  const concluidas = requisicionesFiltradas.filter((req) => req.status === "concluida").length;
+  const metricas = [
+    { titulo: "Requisiciones", valor: total, Icono: FiFileText, detalle: `de ${numero(requisiciones.length)} disponibles` },
+    { titulo: "Artículos", valor: totalArticulos, Icono: FiPackage, detalle: "incluidos en la selección" },
+    { titulo: "Con proveedor", valor: conProveedor, Icono: FiTruck, detalle: "con proveedor registrado" },
+    { titulo: "Concluidas", valor: concluidas, Icono: FiCheckCircle, detalle: "con proceso finalizado" },
+    { titulo: "Con archivos", valor: conArchivos, Icono: FiPaperclip, detalle: "con documentos adjuntos" },
+  ];
+
+  const cambiarOrden = (campo) => {
+    setOrden((actual) => ({ campo, ascendente: actual.campo === campo ? !actual.ascendente : true }));
+    setPaginacion({ pagina: 1, datos: requisicionesFiltradas });
   };
-
-  const capitalizar = (texto) => {
-    if (!texto) return "Sin dato";
-    return texto.charAt(0).toUpperCase() + texto.slice(1);
-  };
-
-  const totalArticulos = requisicionesFiltradas.reduce((total, req) => {
-    return total + (Array.isArray(req.articulos) ? req.articulos.length : 0);
-  }, 0);
-
-  const totalConMonto = requisicionesFiltradas.filter((req) => req.monto).length;
-  const totalConProveedor = requisicionesFiltradas.filter((req) => req.proveedor).length;
-  const totalInternacionales = requisicionesFiltradas.filter(
-    (req) => req.tipoCompra === "internacional"
-  ).length;
-  const totalConArchivos = requisicionesFiltradas.filter(
-    (req) => Array.isArray(req.archivos) && req.archivos.length > 0
-  ).length;
-
-  const getNombreArchivo = () => {
-    const statusTexto = statusFiltro
-      ? `-${statusFiltro.replaceAll(" ", "-")}`
-      : "";
-
-    if (modoExportacion === "todas") return `requisiciones-todas${statusTexto}`;
-    if (modoExportacion === "folio") return `requisicion-${folio || "folio"}${statusTexto}`;
-    if (modoExportacion === "rango") {
-      return `requisiciones-${fechaInicio || "inicio"}-${fechaFin || "fin"}${statusTexto}`;
-    }
-
-    return `requisiciones${statusTexto}`;
-  };
-
-  const handleExportar = () => {
+  const exportar = () => {
     if (!puedeExportar) return;
-
-    exportarRequisicionesAExcel(
-      requisicionesFiltradas,
-      getNombreArchivo()
-    );
+    const sufijo = statusFiltro ? `-${statusFiltro.replaceAll(" ", "-")}` : "";
+    const nombre = modoExportacion === "folio" ? `requisicion-${folio.trim() || "folio"}`
+      : modoExportacion === "rango" ? `requisiciones-${fechaInicio}-${fechaFin}` : "requisiciones-todas";
+    exportarRequisicionesAExcel(ordenadas, `${nombre}${sufijo}`);
   };
-
-  const getFiltroAplicado = () => {
-    const filtroStatus = statusFiltro
-      ? ` | Status: ${capitalizar(statusFiltro)}`
-      : "";
-
-    if (modoExportacion === "todas") return `Todas las requisiciones${filtroStatus}`;
-    if (modoExportacion === "folio") {
-      return folio ? `Folio: ${folio}${filtroStatus}` : `Folio pendiente${filtroStatus}`;
-    }
-    if (modoExportacion === "rango") {
-      if (!fechaInicio || !fechaFin) return `Rango pendiente${filtroStatus}`;
-      return `${fechaInicio} a ${fechaFin}${filtroStatus}`;
-    }
-
-    return statusFiltro ? `Status: ${capitalizar(statusFiltro)}` : "Sin filtro";
+  const limpiar = () => {
+    setModoExportacion("todas"); setFechaInicio(""); setFechaFin(""); setFolio(""); setStatusFiltro("");
   };
-
-  const campoBase =
-    "w-full rounded-lg border border-[#E2E8F0] bg-white px-3.5 py-2.5 text-sm text-[#0F172A] shadow-sm outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#DBEAFE]";
-
-  const metricasPrincipales = [
-    {
-      label: "Disponibles",
-      value: requisiciones.length,
-      icon: FiDatabase,
-      color: "text-[#0F172A]",
-    },
-    {
-      label: "A exportar",
-      value: requisicionesFiltradas.length,
-      icon: FiCheckCircle,
-      color: "text-emerald-700",
-    },
-    {
-      label: "Artículos",
-      value: totalArticulos,
-      icon: FiPackage,
-      color: "text-[#2563EB]",
-    },
-    {
-      label: "Modo",
-      value: capitalizar(modoExportacion),
-      icon: FiFilter,
-      color: "text-[#0F172A]",
-    },
-  ];
-
-  const detalleArchivo = [
-    {
-      label: "Nombre estimado",
-      value: `${getNombreArchivo()}-${fechaDescarga.toISOString().split("T")[0]}.xlsx`,
-    },
-    {
-      label: "Filtro aplicado",
-      value: getFiltroAplicado(),
-    },
-    {
-      label: "Hojas incluidas",
-      value: "Requisiciones y Artículos",
-    },
-    {
-      label: "Fecha de descarga",
-      value: formatearFechaMexico(fechaDescarga),
-    },
-  ];
-
-  const metricasArchivo = [
-    {
-      label: "Con monto",
-      value: totalConMonto,
-      icon: FiCheckCircle,
-      className: "border-[#DBEAFE] bg-[#DBEAFE]/55 text-[#1E40AF]",
-    },
-    {
-      label: "Con proveedor",
-      value: totalConProveedor,
-      icon: FiTruck,
-      className: "border-emerald-100 bg-emerald-50 text-emerald-800",
-    },
-    {
-      label: "Internacionales",
-      value: totalInternacionales,
-      icon: FiDatabase,
-      className: "border-violet-100 bg-violet-50 text-violet-800",
-    },
-    {
-      label: "Con archivos",
-      value: totalConArchivos,
-      icon: FiPaperclip,
-      className: "border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]",
-    },
+  const columnas = [
+    ["solicitante", "Solicitante"], ["folio", "Folio"], ["fechaHora", "Fecha de creación"],
+    ["status", "Status"], ["articulos", "Artículos"], ["proveedor", "Proveedor"],
   ];
 
   return (
-    <div className="w-full px-4 py-3 sm:px-6 lg:px-8 2xl:px-10">
-      <section className="mb-6 overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-sm">
-        <div className="border-b border-[#E2E8F0] bg-white px-5 py-5 sm:px-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#DBEAFE]/55 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1E40AF]">
-                <FiFileText className="h-3.5 w-3.5" />
-                Reportería
-              </div>
-              <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A] sm:text-3xl">
-                Exportar requisiciones
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">
-                Genera archivos Excel por rango de fechas, folio, status o listado completo.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center">
-              <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
-                <p className="text-xs text-[#64748B]">Registros listos</p>
-                <p className="text-2xl font-semibold text-[#0F172A]">{requisicionesFiltradas.length}</p>
-              </div>
-              <div className="rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
-                <p className="text-xs text-[#64748B]">Formato</p>
-                <p className="text-2xl font-semibold text-[#334155]">Excel</p>
-              </div>
-            </div>
-          </div>
+    <div className="export-page">
+      <header className="export-header">
+        <div>
+          <h1>Exportar requisiciones</h1>
+          <nav aria-label="Ruta de navegación" className="export-breadcrumb">
+            <Link to="/requisiciones">Requisiciones</Link><FiChevronRight aria-hidden="true" /><span>Exportar</span>
+          </nav>
         </div>
-
-        <div className="grid gap-6 p-8 sm:p-9 xl:grid-cols-[1fr_auto] xl:items-end">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div>
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <FiDownload className="h-4 w-4 text-slate-400" />
-                Tipo de descarga
-              </label>
-              <select
-                value={modoExportacion}
-                onChange={(e) => setModoExportacion(e.target.value)}
-                className={campoBase}
-              >
-                <option value="todas">Todas</option>
-                <option value="rango">Por rango de fecha</option>
-                <option value="folio">Por folio</option>
-              </select>
-            </div>
-
-            {modoExportacion === "rango" && (
-              <>
-                <div>
-                  <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                    <FiCalendar className="h-4 w-4 text-slate-400" />
-                    Fecha inicio
-                  </label>
-                  <input
-                    type="date"
-                    value={fechaInicio}
-                    onChange={(e) => setFechaInicio(e.target.value)}
-                    className={campoBase}
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                    <FiCalendar className="h-4 w-4 text-slate-400" />
-                    Fecha fin
-                  </label>
-                  <input
-                    type="date"
-                    value={fechaFin}
-                    onChange={(e) => setFechaFin(e.target.value)}
-                    className={campoBase}
-                  />
-                </div>
-              </>
-            )}
-
-            {modoExportacion === "folio" && (
-              <div>
-                <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                  <FiHash className="h-4 w-4 text-slate-400" />
-                  Folio
-                </label>
-                <input
-                  type="text"
-                  value={folio}
-                  onChange={(e) => setFolio(e.target.value)}
-                  placeholder="Ej. C26-00001"
-                  className={campoBase}
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <FiFilter className="h-4 w-4 text-slate-400" />
-                Status
-              </label>
-              <select
-                value={statusFiltro}
-                onChange={(e) => setStatusFiltro(e.target.value)}
-                className={campoBase}
-              >
-                <option value="">Todos los status</option>
-                {statusDisponibles.map((status) => (
-                  <option key={status} value={status}>
-                    {formatearStatusRequisicion(status)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row xl:min-w-[270px]">
-            <button
-              type="button"
-              onClick={obtenerRequisiciones}
-              className="inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3.5 text-sm font-semibold text-[#64748B] shadow-sm transition hover:border-[#DBEAFE] hover:bg-[#DBEAFE]/45 hover:text-[#1E40AF]"
-            >
-              <FiRefreshCw className="h-4 w-4" />
-              Actualizar
-            </button>
-
-            <button
-              type="button"
-              onClick={handleExportar}
-              disabled={!puedeExportar}
-              className="inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-lg bg-[#2563EB] px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3B82F6] disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
-            >
-              <FiDownload className="h-4 w-4" />
-              Descargar
-            </button>
-          </div>
+        <div className="export-header-actions">
+          <span className="export-format"><span /> Excel · .xlsx</span>
+          <Link className="export-button" to="/requisiciones/ayuda"><FiHelpCircle /> Ayuda</Link>
         </div>
+      </header>
 
-        {cargando ? (
-          <div className="border-t border-[#E2E8F0] bg-[#F8FAFC] p-10 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#DBEAFE] text-[#2563EB]">
-              <FiRefreshCw className="h-5 w-5 animate-spin" />
-            </div>
-            <p className="font-semibold text-slate-700">Cargando requisiciones...</p>
-            <p className="mt-1 text-sm text-[#64748B]">Actualizando la información para exportar.</p>
-          </div>
-        ) : (
-          <div className="border-t border-[#E2E8F0] bg-[#F8FAFC]">
-            <div className="grid grid-cols-1 gap-px border-b border-[#E2E8F0] bg-[#E2E8F0] sm:grid-cols-2 xl:grid-cols-4">
-              {metricasPrincipales.map((metrica) => {
-                const Icono = metrica.icon;
+      <div className="export-tabs" role="group" aria-label="Tipo de exportación">
+        {[["todas", "Todas"], ["rango", "Por fecha"], ["folio", "Por folio"]].map(([valor, texto]) => (
+          <button key={valor} type="button" aria-pressed={modoExportacion === valor} className={modoExportacion === valor ? "is-active" : ""} onClick={() => setModoExportacion(valor)}>
+            {texto}{valor === "todas" && <span>{numero(requisiciones.length)}</span>}
+          </button>
+        ))}
+      </div>
 
-                return (
-                  <div
-                    key={metrica.label}
-                    className="flex items-center justify-between gap-3 bg-white px-6 py-7"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-[#64748B]">{metrica.label}</p>
-                      <p className={`mt-1 text-2xl font-semibold ${metrica.color}`}>
-                        {metrica.value}
-                      </p>
-                    </div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#2563EB]">
-                      <Icono className="h-5 w-5" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="p-8">
-              <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-[#334155]">
-                    Resumen del archivo
-                  </h2>
-                  <p className="mt-1 text-sm text-[#64748B]">
-                    Vista previa de los datos que se incluirán en la descarga.
-                  </p>
-                </div>
-                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                  <FiCheckCircle className="h-3.5 w-3.5" />
-                  {puedeExportar ? "Listo para exportar" : "Sin resultados"}
-                </span>
-              </div>
-
-              <div className="grid overflow-hidden rounded-lg border border-[#E2E8F0] bg-white lg:grid-cols-[1.35fr_.65fr]">
-                <div className="border-b border-[#E2E8F0] p-6 lg:border-b-0 lg:border-r">
-                  <div className="mb-5 flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#2563EB]">
-                      <FiFileText className="h-6 w-6" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">
-                        Nombre estimado
-                      </p>
-                      <p className="mt-1 break-words text-base font-semibold text-[#334155]">
-                        {detalleArchivo[0].value}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-3 md:grid-cols-3">
-                    {detalleArchivo.slice(1).map((item) => (
-                      <div
-                        key={item.label}
-                        className="rounded-lg bg-[#F8FAFC] px-4 py-3"
-                      >
-                        <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">
-                          {item.label}
-                        </p>
-                        <p className="mt-1 break-words text-sm font-semibold text-[#334155]">
-                          {item.value}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="divide-y divide-[#E2E8F0] bg-[#F8FAFC]">
-                  {metricasArchivo.map((metrica) => {
-                    const Icono = metrica.icon;
-
-                    return (
-                      <div
-                        key={metrica.label}
-                        className="flex items-center justify-between gap-4 px-5 py-4"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className={`flex h-9 w-9 items-center justify-center rounded-lg border ${metrica.className}`}>
-                            <Icono className="h-4 w-4" />
-                          </span>
-                          <p className="text-sm font-semibold text-[#334155]">
-                            {metrica.label}
-                          </p>
-                        </div>
-                        <p className="text-xl font-semibold text-[#334155]">{metrica.value}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {!puedeExportar && (
-                <div className="mt-5 rounded-lg border border-dashed border-[#E2E8F0] bg-white px-5 py-8 text-center">
-                  <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-[#F8FAFC] text-[#64748B]">
-                    <FiSearch className="h-5 w-5" />
-                  </div>
-                  <p className="font-semibold text-[#64748B]">
-                    No hay requisiciones para exportar con los filtros seleccionados.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          {error}
+      <div className="export-toolbar">
+        <div className="export-filters">
+          <label className="export-select"><FiFilter aria-hidden="true" /><select aria-label="Filtrar por status" value={statusFiltro} onChange={(e) => setStatusFiltro(e.target.value)}><option value="">Todos los status</option>{statusDisponibles.map((status) => <option key={status} value={status}>{formatearStatusRequisicion(status)}</option>)}</select></label>
+          {modoExportacion === "rango" && <div className="export-date-range"><FiCalendar aria-hidden="true" /><input aria-label="Fecha inicial de creación" type="date" value={fechaInicio} max={fechaFin || undefined} onChange={(e) => setFechaInicio(e.target.value)} /><span>—</span><input aria-label="Fecha final de creación" type="date" value={fechaFin} min={fechaInicio || undefined} onChange={(e) => setFechaFin(e.target.value)} /></div>}
+          {modoExportacion === "folio" && <label className="export-folio"><FiSearch aria-hidden="true" /><input aria-label="Buscar por folio" placeholder="Buscar folio, ej. C26-00001" value={folio} onChange={(e) => setFolio(e.target.value)} /></label>}
+          {(modoExportacion !== "todas" || statusFiltro) && <button className="export-clear" type="button" onClick={limpiar}>Limpiar filtros</button>}
         </div>
-      )}
+        <div className="export-toolbar-actions">
+          <button className="export-button export-refresh" type="button" title="Actualizar requisiciones" aria-label="Actualizar requisiciones" disabled={cargando} onClick={obtenerRequisiciones}><FiRefreshCw className={cargando ? "animate-spin" : ""} /></button>
+          <button className="export-button export-download" type="button" disabled={!puedeExportar} onClick={exportar}><FiDownload /> Exportar a Excel</button>
+        </div>
+      </div>
+      {modoExportacion === "rango" && <p className="export-filter-note">El rango corresponde a la fecha de creación de las requisiciones.</p>}
+      {rangoInvalido && <p className="export-error" role="alert">La fecha inicial debe ser anterior o igual a la fecha final.</p>}
+      {error && <div className="export-error" role="alert">{error}<button type="button" onClick={obtenerRequisiciones}>Reintentar</button></div>}
+
+      <div aria-busy={cargando}>
+        <section className="export-metrics" aria-label="Resumen de la selección">
+          {metricas.map((metrica) => {
+            const Icono = metrica.Icono;
+            return <div className="export-metric" key={metrica.titulo}><div className="export-metric-label"><Icono aria-hidden="true" />{metrica.titulo}</div><div className="export-metric-value">{cargando ? "—" : numero(metrica.valor)}<span>{metrica.detalle}</span></div></div>;
+          })}
+        </section>
+
+        <section className="export-chart-panel" aria-labelledby="export-chart-title">
+          <div className="export-chart-heading">
+            <div><h2 id="export-chart-title"><FiActivity />Requisiciones por fecha</h2><div className="export-chart-total">{cargando ? "—" : numero(total)}<span>en la selección</span></div></div>
+            <a className="export-view-table" href="#export-preview">Ver registros <FiChevronRight /></a>
+          </div>
+          <div className="export-chart-meta"><p>{grafica.dias[0].etiqueta} – {grafica.dias.at(-1).etiqueta} · {grafica.dias.at(-1).key.slice(0, 4)} · Fecha de creación</p><div className="export-chart-legend"><span><i className="selection-dot" />Selección</span><button type="button" aria-pressed={verDisponibles} onClick={() => setVerDisponibles(!verDisponibles)} className={!verDisponibles ? "is-muted" : ""}><i />Disponibles</button></div></div>
+          <div className="export-chart-scroll">
+            <svg className="export-chart" viewBox="0 0 976 210" role="img" aria-label={`Requisiciones creadas por día: selección y disponibles. Del ${grafica.dias[0].etiqueta} al ${grafica.dias.at(-1).etiqueta}.`} onMouseLeave={() => setPuntoActivo(null)}>
+              <title>Requisiciones por fecha de creación</title>
+              <desc>{grafica.dias.map((d) => `${d.etiqueta}: ${d.seleccion} seleccionadas, ${d.disponibles} disponibles`).join(". ")}</desc>
+              {[0, 1, 2, 3, 4].map((i) => <g key={i}><line x1="48" x2="952" y1={172 - i * 36} y2={172 - i * 36} stroke="#e9e9eb" strokeDasharray="2 4" /><text x="31" y={176 - i * 36} textAnchor="end" fill="#73737c" fontSize="12">{numero(i * grafica.paso)}</text></g>)}
+              {verDisponibles && <path d={crearLinea(grafica.dias.map((d) => d.disponibles), grafica.maximo)} fill="none" stroke="#c7c7cb" strokeWidth="1.6" />}
+              <path d={crearLinea(grafica.dias.map((d) => d.seleccion), grafica.maximo)} fill="none" stroke="#ed623e" strokeWidth="2" />
+              {grafica.dias.map((d, i) => <g key={d.key}><text x={48 + i * 904 / 13} y="198" textAnchor="middle" fill="#71717a" fontSize="12">{d.etiqueta}</text><rect x={48 + i * 904 / 13 - 24} y="12" width="48" height="164" fill="transparent" onMouseEnter={() => setPuntoActivo(i)}><title>{`${fecha(`${d.key}T12:00:00Z`)}: ${d.seleccion} seleccionadas / ${d.disponibles} disponibles`}</title></rect></g>)}
+              {puntoActivo !== null && <g pointerEvents="none"><line x1={48 + puntoActivo * 904 / 13} x2={48 + puntoActivo * 904 / 13} y1="20" y2="172" stroke="#e4a28f" strokeDasharray="3 3" /><circle cx={48 + puntoActivo * 904 / 13} cy={172 - grafica.dias[puntoActivo].seleccion / grafica.maximo * 144} r="4" fill="#ed623e" stroke="white" strokeWidth="2" /><rect x={Math.min(782, Math.max(48, 48 + puntoActivo * 904 / 13 - 72))} y="2" width="170" height="28" rx="5" fill="#292930" /><text x={Math.min(782, Math.max(48, 48 + puntoActivo * 904 / 13 - 72)) + 85} y="19" fill="white" fontSize="12" textAnchor="middle">{grafica.dias[puntoActivo].etiqueta}: {grafica.dias[puntoActivo].seleccion} seleccionadas</text></g>}
+            </svg>
+          </div>
+          <p className="export-chart-footnote">Últimos 14 días del periodo mostrado. Disponibles incluye todas las requisiciones creadas en esas mismas fechas.</p>
+        </section>
+
+        <section className="export-table-panel" id="export-preview" aria-labelledby="export-table-title">
+          <div className="export-table-heading"><h2 id="export-table-title">Vista previa <span>{numero(total)}</span></h2><span className="export-table-note"><FiCheckCircle /> 2 hojas: Requisiciones y Artículos</span></div>
+          <div className="export-table-scroll"><table className="export-table"><thead><tr>{columnas.map(([campo, titulo]) => <th key={campo} scope="col" aria-sort={orden.campo === campo ? orden.ascendente ? "ascending" : "descending" : "none"}><button type="button" onClick={() => cambiarOrden(campo)}>{titulo}{orden.campo === campo ? orden.ascendente ? <FiArrowUp /> : <FiArrowDown /> : <FiChevronsDown />}</button></th>)}</tr></thead><tbody>
+            {cargando ? <tr><td colSpan="6" className="export-table-empty"><FiRefreshCw className="animate-spin" /> Cargando requisiciones…</td></tr>
+              : error ? <tr><td colSpan="6" className="export-table-empty">No se pudo actualizar la información. Intenta de nuevo.</td></tr>
+              : filas.length === 0 ? <tr><td colSpan="6" className="export-table-empty"><FiSearch />{modoExportacion === "rango" && (!fechaInicio || !fechaFin) ? "Selecciona ambas fechas para consultar las requisiciones." : modoExportacion === "folio" && !folio.trim() ? "Escribe un folio para consultar las requisiciones." : "No hay requisiciones con los filtros seleccionados."}</td></tr>
+              : filas.map((req) => <tr key={req.id || req.folio}><td><div className="export-person"><AvatarIniciales nombre={solicitante(req)} size={30} /><div><span>{solicitante(req)}</span><small>{req.area || "Sin área"}</small></div></div></td><td className="export-folio-cell">{req.folio || "Sin folio"}</td><td className="export-date-cell">{fecha(req.fechaHora)}</td><td><span className={`export-status ${["concluida", "autorizada"].includes(req.status) ? "is-green" : ["rechazada", "cancelada"].includes(req.status) ? "is-red" : normalizarStatusRequisicion(req.status) === "esperando autorizacion" ? "is-amber" : "is-neutral"}`}><i />{formatearStatusRequisicion(req.status) || "Sin status"}</span></td><td className="export-number-cell">{numero(req.articulos?.length)}</td><td>{req.proveedor || <span className="export-no-data">Sin asignar</span>}</td></tr>)}
+          </tbody></table></div>
+          <footer className="export-table-footer"><span>{total === 0 ? "0 registros" : `${numero(inicio + 1)}–${numero(Math.min(inicio + 8, total))} de ${numero(total)} requisiciones`}<small>La descarga incluye todos los resultados filtrados.</small></span><div className="export-pagination"><button type="button" className="export-button" aria-label="Página anterior" disabled={pagina <= 1 || cargando} onClick={() => setPaginacion({ pagina: pagina - 1, datos: requisicionesFiltradas })}><FiChevronLeft /></button><span>{pagina} / {paginas}</span><button type="button" className="export-button" aria-label="Página siguiente" disabled={pagina >= paginas || cargando} onClick={() => setPaginacion({ pagina: pagina + 1, datos: requisicionesFiltradas })}><FiChevronRight /></button></div></footer>
+        </section>
+      </div>
     </div>
   );
 };

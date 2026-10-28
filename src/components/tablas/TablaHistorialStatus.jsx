@@ -1,3 +1,4 @@
+import AvatarIniciales from "../AvatarIniciales";
 import React, { useEffect, useMemo, useState } from "react";
 import { FiArrowLeft, FiArrowRight, FiClock, FiFileText } from "react-icons/fi";
 import { formatearStatusRequisicion } from "../../helpers/FuncionesHelpers";
@@ -94,7 +95,7 @@ const TablaHistorialStatus = ({ historial }) => {
               <tr key={item.id} className="bg-white transition hover:bg-[#F8FAFC]">
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#2563EB]">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#DBEAFE] text-[#2563EB]">
                       <FiFileText className="h-5 w-5" />
                     </div>
                     <div>
@@ -129,7 +130,7 @@ const TablaHistorialStatus = ({ historial }) => {
                 </td>
 
                 <td className="px-6 py-5 font-medium">
-                  {item.usuarioNombre || "Sin usuario"}
+                  <div className="flex items-center gap-3"><AvatarIniciales nombre={item.usuarioNombre} /><span>{item.usuarioNombre || "Sin usuario"}</span></div>
                 </td>
 
                 <td className="px-6 py-5">

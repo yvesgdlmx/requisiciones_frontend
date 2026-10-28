@@ -1,3 +1,4 @@
+import AvatarIniciales from "../AvatarIniciales";
 import React, { useState } from "react";
 import { FaExclamationTriangle, FaPencilAlt, FaTrash } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -179,13 +180,13 @@ const TablaRequisicionesMobile = ({
             className="cursor-pointer p-4"
             onClick={() => onRowClick && onRowClick(item)}
           >
-            <div className="mb-3 flex items-start justify-between">
-              <div>
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3"><AvatarIniciales nombre={item.solicitante} /><div>
                 <p className="text-lg font-semibold text-gray-700">
                   {item.solicitante}
                 </p>
                 <p className="text-sm text-gray-500">{item.area}</p>
-              </div>
+              </div></div>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium ${getColorStatus(
                   item.status

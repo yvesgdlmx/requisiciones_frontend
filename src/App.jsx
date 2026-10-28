@@ -49,6 +49,7 @@ const ExportarRequisiciones = lazy(() =>
 const ReportesRequisiciones = lazy(() =>
     import("./pages/requisiciones/ReportesRequisiciones")
 )
+const Ayuda = lazy(() => import("./pages/requisiciones/Ayuda"));
 
 function App() {
   return (
@@ -104,6 +105,14 @@ function App() {
               />
 
               <Route path="notificaciones" element={<Notificaciones />} />
+              <Route
+                path="ayuda"
+                element={
+                  <RoleProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                    <Ayuda />
+                  </RoleProtectedRoute>
+                }
+              />
 
               <Route
                 path="registrar"
