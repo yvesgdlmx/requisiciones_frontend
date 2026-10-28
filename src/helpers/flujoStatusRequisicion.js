@@ -1,7 +1,7 @@
 // Mantener estas transiciones sincronizadas con el flujo del otro proyecto.
 export const TRANSICIONES_STATUS = {
   creada: ["cancelada", "esperando autorizacion", "cotizando"],
-  cotizando: ["proveedor preparando envío"],
+  cotizando: ["proveedor preparando envío", "esperando autorizacion"],
   "esperando autorizacion": ["autorizada", "rechazada"],
   autorizada: ["proceso de pago", "proveedor preparando envío"],
   "proceso de pago": ["proveedor preparando envío"],
